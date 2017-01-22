@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/YellowKyu/WaiterAPI/issues"
   },
-  "homepage": "https://github.com/YellowKyu/WaiterAPI#readme"
+  "homepage": "https://github.com/YellowKyu/WaiterAPI#readme",
+  "dependencies": {
+    "body-parser": "^1.16.0",
+    "express": "^4.14.0",
+    "mongoose": "^4.7.7"
+  }
 }
