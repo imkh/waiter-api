@@ -27,6 +27,14 @@ http://brew.sh/
 
 ```brew services start mongodb```
 
+Before running application, don't forget to create the database.
+
+Open mongo shell in a terminal:
+```mongo```
+
+Create the database, run the following command in mongo shell:
+```use waiter-api```
+
 ### Application
 
 ```node app.js```
