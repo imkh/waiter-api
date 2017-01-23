@@ -56,7 +56,11 @@ router.get('/:id', function(req, res) {
         if (err) {
             res.status(500).json({success: false});
         } else {
-            res.json({success: true, message: user});
+            if (user === null) {
+                res.status(404).json({success: false, message: 'user not found'});
+            } else {
+                res.json({success: true, message: user});
+            }
         }
     });
 });
@@ -102,16 +106,81 @@ router.post('/login', function(req, res) {
 });
 
 router.put('/:id/password', function(req, res) {
-    res.status(200).json({success: true});
+    var salt = bcrypt.genSaltSync(saltRounds);
+    var newPassword = bcrypt.hashSync(res.req.body.newPassword, salt);
+
+    mongoose.model('User').findById(req.id, function (err, user) {
+        if (err) {
+            res.status(500).json({success: false, message: 'unknown user'});
+        } else {
+            if (user === null) {
+                res.status(404).json({success: false, message: 'user not found'});
+            } else {
+                if (bcrypt.compareSync(res.req.body.password, user.password)) {
+                    user.update({
+                        password: newPassword
+                    }, function (err) {
+                        if (err) {
+                            res.status(500).json({success: false, message: 'Internal error'});
+                        } else {
+                            res.json({success: true, message: user});
+                        }
+                    });
+                } else {
+                    res.status(500).json({success: false, message: 'wrong password'});
+                }
+            }
+        }
+    });
 });
 
 router.put('/:id/profile', function(req, res) {
-    res.status(200).json({success: true});
+    var firstname = res.req.body.firstname;
+    var lastname = res.req.body.lastname;
+    var email = res.req.body.email;
+
+    mongoose.model('User').findById(req.id, function (err, user) {
+        if (err) {
+            res.status(500).json({success: false, message: 'unknown user'});
+        } else {
+            if (user === null) {
+                res.status(404).json({success: false, message: 'user not found'});
+            } else {
+                user.update({
+                    firstname: firstname,
+                    lastname: lastname,
+                    email: email
+                }, function (err) {
+                    if (err) {
+                        res.status(500).json({success: false, message: 'Internal error'});
+                    } else {
+                        res.json({success: true});
+                    }
+                });
+            }
+        }
+    });
 });
 
 
 router.delete('/:id', function(req, res) {
-    res.status(200).json({success: true});
+    mongoose.model('User').findById(req.id, function (err, user) {
+        if (err) {
+            res.status(500).json({success: false, message: 'unknown user'});
+        } else {
+            if (user === null) {
+                res.status(404).json({success: false, message: 'user not found'});
+            } else {
+                user.remove(function (err) {
+                    if (err) {
+                        res.status(500).json({success: false, message: 'Internal error'});
+                    } else {
+                        res.json({success: true});
+                    }
+                });
+            }
+        }
+    });
 });
 
 module.exports = router;
