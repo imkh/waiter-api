@@ -1,8 +1,13 @@
 var express = require('express');
 var router = express.Router();
+var bcrypt = require('bcrypt');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var methodOverride = require('method-override');
+const saltRounds = 14;
+
+//@TODO token management
+//@TODO ACL management
 
 router.use(methodOverride(function(req, res) {
     if (req.body && typeof req.body === 'object' && '_method' in req.body) {
@@ -17,19 +22,51 @@ router.use(bodyParser.urlencoded({
     extended: true
 }));
 
+router.param('id', function(req, res, next, id) {
+    mongoose.model('User').findById(id, function (err, user) {
+        if (err) {
+            console.log(id + ' was not found');
+            res.status(404)
+            var err = new Error('Not Found');
+            err.status = 404;
+            res.format({
+                json: function(){
+                    res.status(404).json({success: false, message : err.status  + ' ' + err});
+                }
+            });
+        } else {
+            req.id = id;
+            next();
+        }
+    });
+});
+
 router.get('/', function(req, res) {
-    res.status(200).json({success: true});
+    mongoose.model('User').find({}, function (err, users) {
+        if (err) {
+            res.status(500).json({success: false});
+        } else {
+            res.json({success: true, message: users});
+        }
+    });
 });
 
 router.get('/:id', function(req, res) {
-    res.status(200).json({success: true});
+    mongoose.model('User').findById(req.id, function (err, user) {
+        if (err) {
+            res.status(500).json({success: false});
+        } else {
+            res.json({success: true, message: user});
+        }
+    });
 });
 
 router.post('/', function(req, res) {
+    var salt = bcrypt.genSaltSync(saltRounds);
     var firstname = res.req.body.firstname;
     var lastname = res.req.body.lastname;
     var email = res.req.body.email;
-    var password = res.req.body.password;
+    var password = bcrypt.hashSync(res.req.body.password, salt);;
     var type = res.req.body.type;
 
     mongoose.model('User').create({
@@ -48,15 +85,30 @@ router.post('/', function(req, res) {
 });
 
 router.post('/login', function(req, res) {
-    // var email;
-    // var password;
+    var email = res.req.body.email;
 
+    mongoose.model('User').findOne({email: email}, function (err, user) {
+        if (err) {
+            res.status(500).json({success: false});
+        } else {
+            if (bcrypt.compareSync(res.req.body.password, user.password)) {
+                //@TODO token management
+                res.json({success: true, message: user});
+            } else {
+                res.status(500).json({success: false});
+            }
+        }
+    });
+});
+
+router.put('/:id/password', function(req, res) {
     res.status(200).json({success: true});
 });
 
-router.put('/:id', function(req, res) {
+router.put('/:id/profile', function(req, res) {
     res.status(200).json({success: true});
 });
+
 
 router.delete('/:id', function(req, res) {
     res.status(200).json({success: true});
