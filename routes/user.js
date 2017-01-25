@@ -60,7 +60,7 @@ router.post('/login', function(req, res) {
                     expiresIn: "31d" // expires in 30days hours
                 });
 
-                res.json({status: "success", data: {token: token}});
+                res.json({status: "success", data: {token: token, user: user}});
             } else {
                 res.status(500).json({status: "fail"});
             }
@@ -188,7 +188,6 @@ router.put('/:id/profile', function(req, res) {
         }
     });
 });
-
 
 router.delete('/:id', function(req, res) {
     mongoose.model('User').findById(req.id, function (err, user) {
