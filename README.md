@@ -1,42 +1,44 @@
 # WaiterAPI
 ===========
 
-# Mac OS X
+## Mac OS X
 
-## Installation
+### Installation
 
 There might be problems with installation depending on your computer, in that case, good luck.
 
 ### Homebrew
 
-```/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"```
+`/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
 
 http://brew.sh/
 
 ### Node.js
 
-```brew install nodejs```
+`brew install nodejs`
 
 ### Mongodb
 
-```brew install mongodb```
+`brew install mongodb`
 
-## Running
+### Running
+
+//
 
 ### MongoDB
 
-```brew services start mongodb```
+`brew services start mongodb`
 
 Before running application, don't forget to create the database.
 
 Open mongo shell in a terminal :
 
-```mongo```
+`mongo`
 
 Create the database, run the following command in mongo shell :
 
-```use waiter-api```
+`use waiter-api`
 
 ### Application
 
-```node app.js```
+`node app.js`
