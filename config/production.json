@@ -1,0 +1,8 @@
+{
+  "mongo": {
+    "URL": "mongodb://localhost:27017/waiter-api"
+  },
+  "server": {
+    "port": 5000
+  }
+}

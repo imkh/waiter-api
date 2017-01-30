@@ -1,0 +1,8 @@
+{
+  "bcrypt": {
+    "saltRounds": 14
+  },
+  "JWT": {
+    "tokenSecret": "qhsjmkshakan2018"
+  }
+}

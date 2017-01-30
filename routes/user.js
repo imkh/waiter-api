@@ -5,9 +5,12 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var methodOverride = require('method-override');
 var jwt = require('jsonwebtoken');
+var config = require('config');
+var bcryptConfig = config.get('bcrypt');
+var tokenConfig = config.get('JWT');
 
-const saltRounds = 14;
-const tokenSecret = 'qhsjmkshakan2018';
+const saltRounds = bcryptConfig.saltRounds;
+const tokenSecret = tokenConfig.tokenSecret;
 
 //@TODO ACL management
 
