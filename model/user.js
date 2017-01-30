@@ -16,6 +16,7 @@ var userSchema = new mongoose.Schema({
     password: {type: String, required: true},
     type: Number,
     createdAt: {type: Date, default: Date.now},
-    confirmToken: String
+    confirmToken: String,
+    status: {type: String, enum: ['Not activated', 'Activated', 'Banned']}
 });
 mongoose.model('User', userSchema);

@@ -6,8 +6,14 @@ var mongoose = require('mongoose');
 var methodOverride = require('method-override');
 var jwt = require('jsonwebtoken');
 var config = require('config');
+var nodemailer = require('nodemailer');
+
 var bcryptConfig = config.get('bcrypt');
 var tokenConfig = config.get('JWT');
+var emailConfig = config.get('email');
+var smtpConfig = config.get('smtp');
+
+var transporter = nodemailer.createTransport(smtpConfig);
 
 const saltRounds = bcryptConfig.saltRounds;
 const tokenSecret = tokenConfig.tokenSecret;
@@ -27,6 +33,17 @@ router.use(bodyParser.urlencoded({
     extended: true
 }));
 
+function makeid()
+{
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for(var i = 0; i < 20; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+}
+
 //unprotected routes
 router.post('/', function(req, res) {
     var salt = bcrypt.genSaltSync(saltRounds);
@@ -36,6 +53,8 @@ router.post('/', function(req, res) {
     var lastname = res.req.body.lastname;
     var email = res.req.body.email;
     var type = res.req.body.type;
+    var confirmToken = makeid();
+    var status = 'Not activated';
 
     if (!res.req.body.password) {
         causes.push('Path `Password` is required.')
@@ -49,20 +68,60 @@ router.post('/', function(req, res) {
         lastname: lastname,
         email: email,
         password: password,
-        type: type
+        type: type,
+        confirmToken: makeid(),
+        status: status
     }, function(err, user) {
         if (err) {
-            if (err.errors.lastname)
-                causes.push(err.errors.lastname.message)
-            if (err.errors.firstname)
-                causes.push(err.errors.firstname.message)
-            if (err.errors.email)
-                causes.push(err.errors.email.message)
-            if (err.errors.password)
-                causes.push(err.errors.password.message)
+            if (err.errors) {
+                if (err.errors.lastname)
+                    causes.push(err.errors.lastname.message)
+                if (err.errors.firstname)
+                    causes.push(err.errors.firstname.message)
+                if (err.errors.email)
+                    causes.push(err.errors.email.message)
+                if (err.errors.password)
+                    causes.push(err.errors.password.message)
+            }
             res.status(500).json({status: "fail", data: {message: 'fail user registration', causes: causes}});
         } else {
+            emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + user._id.toString() + '/' + user.confirmToken;
+            transporter.sendMail(emailConfig, function (err) {
+                if (err) {
+                    console.error('Emailing error: ' + err);
+                } else {
+                    console.log('Email sent at ' + emailConfig.to);
+                }
+            });
             res.status(200).json({status: "success", data: user._id.toString()});
+        }
+    });
+});
+
+router.get('/confirm/:id/:confirmToken', function(req, res) {
+    mongoose.model('User').findById(req.id, function (err, user) {
+        if (err) {
+            res.status(500).json({status: "fail"});
+        } else {
+            if (user === null) {
+                res.status(404).json({status: "fail", data: 'user not found'});
+            } else {
+                if (req.params.confirmToken === user.confirmToken) {
+                    if (user.status === 'Not activated') {
+                        user.update({status: 'Activated'}, function (err) {
+                            if (err) {
+                                res.status(500).json({status: "fail", data: {message: 'internal error'}});
+                            } else {
+                                res.json({status: "success", data: {user: user._id.toString(), message: 'User activated'}});
+                            }
+                        });
+                    } else {
+                        res.json({status: "success", data: {user: user._id.toString(), message: 'User already activated'}});
+                    }
+                } else {
+                    res.status(404).json({status: "fail", data: 'invalid confirmation token'});
+                }
+            }
         }
     });
 });
