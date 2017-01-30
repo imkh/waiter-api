@@ -154,6 +154,12 @@ router.get('/:id', function(req, res) {
 });
 
 router.put('/:id/password', function(req, res) {
+
+    if (!res.req.body.newPassword) {
+        res.status(500).json({status: "fail", data: {message: 'Missing new password'}});
+        return ;
+    }
+
     var salt = bcrypt.genSaltSync(saltRounds);
     var newPassword = bcrypt.hashSync(res.req.body.newPassword, salt);
 
@@ -164,7 +170,7 @@ router.put('/:id/password', function(req, res) {
             if (user === null) {
                 res.status(404).json({status: "fail", data: 'user not found'});
             } else {
-                if (bcrypt.compareSync(res.req.body.password, user.password)) {
+                if (res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
                     user.update({
                         password: newPassword
                     }, function (err) {
@@ -183,6 +189,8 @@ router.put('/:id/password', function(req, res) {
 });
 
 router.put('/:id/profile', function(req, res) {
+    var causes = [];
+
     var firstname = res.req.body.firstname;
     var lastname = res.req.body.lastname;
     var email = res.req.body.email;
@@ -198,9 +206,18 @@ router.put('/:id/profile', function(req, res) {
                     firstname: firstname,
                     lastname: lastname,
                     email: email
-                }, function (err) {
+                }, {
+                    runValidators: true
+                },
+                function (err) {
                     if (err) {
-                        res.status(500).json({status: "fail", data: {message: 'Internal error'}});
+                        if (err.errors.lastname)
+                            causes.push(err.errors.lastname.message)
+                        if (err.errors.firstname)
+                            causes.push(err.errors.firstname.message)
+                        if (err.errors.email)
+                            causes.push(err.errors.email.message)
+                        res.status(500).json({status: "fail", data: {message: 'Internal error', causes: causes}});
                     } else {
                         res.json({status: "success"});
                     }
