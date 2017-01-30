@@ -30,11 +30,19 @@ router.use(bodyParser.urlencoded({
 //unprotected routes
 router.post('/', function(req, res) {
     var salt = bcrypt.genSaltSync(saltRounds);
+    var causes = [];
+
     var firstname = res.req.body.firstname;
     var lastname = res.req.body.lastname;
     var email = res.req.body.email;
-    var password = bcrypt.hashSync(res.req.body.password, salt);;
     var type = res.req.body.type;
+
+    if (!res.req.body.password) {
+        causes.push('Path `Password` is required.')
+        res.status(500).json({status: "fail", data: {message: 'fail user registration', causes: causes}});
+        return ;
+    }
+    var password = bcrypt.hashSync(res.req.body.password, salt);
 
     mongoose.model('User').create({
         firstname: firstname,
@@ -44,7 +52,15 @@ router.post('/', function(req, res) {
         type: type
     }, function(err, user) {
         if (err) {
-            res.status(500).json({status: "fail", data: {message: 'fail user registration'}});
+            if (err.errors.lastname)
+                causes.push(err.errors.lastname.message)
+            if (err.errors.firstname)
+                causes.push(err.errors.firstname.message)
+            if (err.errors.email)
+                causes.push(err.errors.email.message)
+            if (err.errors.password)
+                causes.push(err.errors.password.message)
+            res.status(500).json({status: "fail", data: {message: 'fail user registration', causes: causes}});
         } else {
             res.status(200).json({status: "success", data: user._id.toString()});
         }
@@ -58,7 +74,9 @@ router.post('/login', function(req, res) {
         if (err) {
             res.status(500).json({status: "fail"});
         } else {
-            if (bcrypt.compareSync(res.req.body.password, user.password)) {
+            if (user === null) {
+                res.status(500).json({status: "fail"});
+            } else if (res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
                 var token = jwt.sign(user._id, tokenSecret, {
                     expiresIn: "31d" // expires in 30days hours
                 });
