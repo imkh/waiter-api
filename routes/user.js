@@ -43,7 +43,7 @@ router.post('/', function(req, res) {
         if (err) {
             res.status(500).json({status: "fail", data: {message: 'fail user registration'}});
         } else {
-            res.status(200).json({status: "success", data: user});
+            res.status(200).json({status: "success", data: user._id.toString()});
         }
     });
 });
@@ -56,11 +56,11 @@ router.post('/login', function(req, res) {
             res.status(500).json({status: "fail"});
         } else {
             if (bcrypt.compareSync(res.req.body.password, user.password)) {
-                var token = jwt.sign(user, tokenSecret, {
+                var token = jwt.sign(user._id, tokenSecret, {
                     expiresIn: "31d" // expires in 30days hours
                 });
 
-                res.json({status: "success", data: {token: token, user: user}});
+                res.json({status: "success", data: {token: token, user: user._id.toString()}});
             } else {
                 res.status(500).json({status: "fail"});
             }
@@ -150,7 +150,7 @@ router.put('/:id/password', function(req, res) {
                         if (err) {
                             res.status(500).json({status: "fail", data: {message: 'Internal error'}});
                         } else {
-                            res.json({status: "success", data: user});
+                            res.json({status: "success", data: user._id.toString()});
                         }
                     });
                 } else {

@@ -5,9 +5,7 @@ var userSchema = new mongoose.Schema({
     email: String,
     password: String,
     type: Number,
-    tokens: [{
-        hash: String,
-        expirationDate: Date
-    }]
+    createdAt: {type: Date, default: Date.now},
+    confirmToken: String
 });
 mongoose.model('User', userSchema);
