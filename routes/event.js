@@ -8,6 +8,14 @@ var mongoose = require('mongoose');
 var methodOverride = require('method-override');
 var config = require('config');
 
+router.use(methodOverride(function(req, res) {
+    if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+        var method = req.body._method;
+        delete req.body._method;
+        return method;
+    }
+}));
+
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({
     extended: true
@@ -90,6 +98,26 @@ router.get('/', function(req, res) {
             res.status(500).json({status: "fail"});
         } else {
             res.json({status: "success", data: events});
+        }
+    });
+});
+
+router.delete('/:id', function(req, res) {
+    mongoose.model('Event').findById(req.id, function (err, event) {
+        if (err) {
+            res.status(500).json({status: "fail", data: {message: 'unknown event'}});
+        } else {
+            if (event === null) {
+                res.status(404).json({status: "fail", data: {message: 'event not found'}});
+            } else {
+                event.remove(function (err) {
+                    if (err) {
+                        res.status(500).json({status: "fail", data: {message: 'Internal error'}});
+                    } else {
+                        res.json({status: "success"});
+                    }
+                });
+            }
         }
     });
 });
