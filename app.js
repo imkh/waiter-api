@@ -1,5 +1,7 @@
 var express = require('express');
+
 var app = express();
+
 var db = require('./model/database.js');
 var userModel = require('./model/user.js');
 var eventModel = require('./model/event.js');
@@ -16,3 +18,4 @@ app.listen(serverConfig.port, function() {
     console.log('HTTP on port ' + serverConfig.port);
 });
 
+module.exports = app;
