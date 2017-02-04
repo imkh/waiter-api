@@ -93,7 +93,7 @@ router.post('/', function(req, res) {
                     console.log('Email sent at ' + emailConfig.to);
                 }
             });
-            res.status(200).json({status: "success", data: user._id.toString()});
+            res.status(201).json({status: "success", data: user._id.toString()});
         }
     });
 });
