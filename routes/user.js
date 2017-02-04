@@ -156,9 +156,9 @@ router.post('/login', function(req, res) {
 router.get('/', function(req, res) {
     mongoose.model('User').find({}, function (err, users) {
         if (err) {
-            res.status(500).json({status: "fail"});
+	    res.status(500).jsend.error({message: err}); 
         } else {
-            res.json({status: "success", data: users});
+	    res.status(200).jsend.success(users);
         }
     });
 });
