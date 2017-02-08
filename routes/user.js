@@ -7,6 +7,7 @@ var methodOverride = require('method-override');
 var jwt = require('jsonwebtoken');
 var config = require('config');
 var nodemailer = require('nodemailer');
+var jsend = require('jsend');
 
 var bcryptConfig = config.get('bcrypt');
 var tokenConfig = config.get('JWT');
@@ -17,6 +18,8 @@ var transporter = nodemailer.createTransport(smtpConfig);
 
 const saltRounds = bcryptConfig.saltRounds;
 const tokenSecret = tokenConfig.tokenSecret;
+
+router.use(jsend.middleware);
 
 //@TODO ACL management
 
@@ -49,29 +52,24 @@ router.post('/', function(req, res) {
     var salt = bcrypt.genSaltSync(saltRounds);
     var causes = [];
 
-    var firstname = res.req.body.firstname;
-    var lastname = res.req.body.lastname;
-    var email = res.req.body.email;
-    var type = res.req.body.type;
-    var confirmToken = makeid();
-    var status = 'Not activated';
-
     if (!res.req.body.password) {
         causes.push('Path `Password` is required.')
-        res.status(500).json({status: "fail", data: {message: 'fail user registration', causes: causes}});
+	res.status(400).jsend.fail({message: 'fail user registration', causes: causes});
         return ;
     }
-    var password = bcrypt.hashSync(res.req.body.password, salt);
 
-    mongoose.model('User').create({
-        firstname: firstname,
-        lastname: lastname,
-        email: email,
-        password: password,
-        type: type,
-        confirmToken: makeid(),
-        status: status
-    }, function(err, user) {
+    
+    var user = {
+	firstname: res.req.body.firstname,
+	lastname: res.req.body.lastname,
+	email: res.req.body.email,
+	password: bcrypt.hashSync(res.req.body.password, salt),
+	type: res.req.body.type,
+	status: 'Not activated',
+	confirmToken: makeid()
+    };
+    
+    mongoose.model('User').create(user, function(err, createdUser) {
         if (err) {
             if (err.errors) {
                 if (err.errors.lastname)
@@ -83,9 +81,9 @@ router.post('/', function(req, res) {
                 if (err.errors.password)
                     causes.push(err.errors.password.message)
             }
-            res.status(500).json({status: "fail", data: {message: 'fail user registration', causes: causes}});
+	    res.status(400).jsend.fail({message: 'fail user registration', causes: causes}); 
         } else {
-            emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + user._id.toString() + '/' + user.confirmToken;
+            emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() + '/' + createdUser.confirmToken;
             transporter.sendMail(emailConfig, function (err) {
                 if (err) {
                     console.error('Emailing error: ' + err);
@@ -93,7 +91,14 @@ router.post('/', function(req, res) {
                     console.log('Email sent at ' + emailConfig.to);
                 }
             });
-            res.status(200).json({status: "success", data: user._id.toString()});
+
+	    var response = {
+		user: {
+		    id: createdUser._id.toString()
+		}
+	    };
+	    
+            res.status(201).jsend.success(response);
         }
     });
 });
@@ -151,9 +156,9 @@ router.post('/login', function(req, res) {
 router.get('/', function(req, res) {
     mongoose.model('User').find({}, function (err, users) {
         if (err) {
-            res.status(500).json({status: "fail"});
+	    res.status(500).jsend.error({message: err}); 
         } else {
-            res.json({status: "success", data: users});
+	    res.status(200).jsend.success(users);
         }
     });
 });

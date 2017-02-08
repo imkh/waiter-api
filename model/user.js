@@ -19,4 +19,5 @@ var userSchema = new mongoose.Schema({
     confirmToken: String,
     status: {type: String, enum: ['Not activated', 'Activated', 'Banned']}
 });
-mongoose.model('User', userSchema);
+
+module.exports = mongoose.model('User', userSchema);

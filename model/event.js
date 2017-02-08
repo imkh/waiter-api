@@ -8,4 +8,5 @@ var eventSchema = new mongoose.Schema({
     img: {type: String},
     description: {type: String, required: true}
 });
-mongoose.model('Event', eventSchema);
+
+module.exports = mongoose.model('Event', eventSchema);
