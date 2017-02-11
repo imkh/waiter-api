@@ -1,5 +1,8 @@
 # WaiterAPI
-===========
+
+## Documentation
+
+The API documentation can be found here: http://docs.waiterapi.apiary.io/
 
 ## Mac OS X
 
