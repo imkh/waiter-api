@@ -17,7 +17,8 @@ var userSchema = new mongoose.Schema({
     type: Number,
     createdAt: {type: Date, default: Date.now},
     confirmToken: String,
-    status: {type: String, enum: ['Not activated', 'Activated', 'Banned']}
+    status: {type: String, enum: ['Not activated', 'Activated', 'Banned']},
+    currentEvent: {type: mongoose.Schema.Types.ObjectId, ref: 'Event'}
 });
 
 module.exports = mongoose.model('User', userSchema);

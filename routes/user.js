@@ -60,13 +60,13 @@ router.post('/', function(req, res) {
 
     
     var user = {
-	firstname: res.req.body.firstname,
-	lastname: res.req.body.lastname,
-	email: res.req.body.email,
-	password: bcrypt.hashSync(res.req.body.password, salt),
-	type: res.req.body.type,
-	status: 'Not activated',
-	confirmToken: makeid()
+    	firstname: res.req.body.firstname,
+	    lastname: res.req.body.lastname,
+	    email: res.req.body.email,
+	    password: bcrypt.hashSync(res.req.body.password, salt),
+	    type: res.req.body.type,
+	    status: 'Not activated',
+	    confirmToken: makeid()
     };
     
     mongoose.model('User').create(user, function(err, createdUser) {

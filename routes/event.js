@@ -7,6 +7,11 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var methodOverride = require('method-override');
 var config = require('config');
+var jwt = require('jsonwebtoken');
+
+var tokenConfig = config.get('JWT');
+
+const tokenSecret = tokenConfig.tokenSecret;
 
 router.use(methodOverride(function(req, res) {
     if (req.body && typeof req.body === 'object' && '_method' in req.body) {
@@ -84,7 +89,7 @@ router.get('/:id', function(req, res) {
             res.status(500).json({status: "fail", data: {message: 'internal server error'}});
         } else {
             if (event === null) {
-                res.status(404).json({status: "fail", data: {message: 'user not found'}});
+                res.status(404).json({status: "fail", data: {message: 'event not found'}});
             } else {
                 res.json({status: "success", data: event});
             }
@@ -115,6 +120,108 @@ router.delete('/:id', function(req, res) {
                         res.status(500).json({status: "fail", data: {message: 'Internal error'}});
                     } else {
                         res.json({status: "success"});
+                    }
+                });
+            }
+        }
+    });
+});
+
+//middleware start
+router.use(function(req, res, next) {
+    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    if (token) {
+        jwt.verify(token, tokenSecret, function(err, decoded) {
+            if (err) {
+                return res.json({status: "fail", data: {message: 'Failed to authenticate token.'}});
+            } else {
+                req.decoded = decoded;
+                next();
+            }
+        });
+    } else {
+        return res.status(403).send({status: "fail", data: {message: 'No token provided.'}});
+    }
+});
+//middleware end
+
+router.put('/:id/join', function(req, res) {
+
+    var userId = res.req.body.userId;
+
+    mongoose.model('User').findById(userId, function (err, user) {
+        if (err) {
+            res.status(500).json({status: "fail"});
+        } else {
+            if (user === null) {
+                res.status(404).json({status: "fail", data: 'user not found'});
+            } else {
+                mongoose.model('Event').findById(req.id, function (err, event) {
+                    if (err) {
+                        res.status(500).json({status: "fail", data: {message: 'internal server error'}});
+                    } else {
+                        if (event === null) {
+                            res.status(404).json({status: "fail", data: {message: 'event not found'}});
+                        } else {
+                            user.update({
+                                currentEvent: event._id
+                            }, function (err) {
+                                if (err) {
+                                    res.status(500).json({status: "fail", data: {message: 'internal server error'}});
+                                } else {
+                                    event.listOfWaiters.push(user._id);
+                                    event.save(function (err) {
+                                        if (err) {
+                                            res.status(500).json({status: "fail", data: {message: 'internal server error'}});
+                                        } else {
+                                            res.json({status: "success", data: {message: 'Joined event'}});
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    });
+});
+
+router.put('/:id/leave', function(req, res) {
+
+    var userId = res.req.body.userId;
+
+    mongoose.model('User').findById(userId, function (err, user) {
+        if (err) {
+            res.status(500).json({status: "fail"});
+        } else {
+            if (user === null) {
+                res.status(404).json({status: "fail", data: 'user not found'});
+            } else {
+                mongoose.model('Event').findById(req.id, function (err, event) {
+                    if (err) {
+                        res.status(500).json({status: "fail", data: {message: 'internal server error'}});
+                    } else {
+                        if (event === null) {
+                            res.status(404).json({status: "fail", data: {message: 'event not found'}});
+                        } else {
+                            user.update({
+                                currentEvent: null
+                            }, function (err) {
+                                if (err) {
+                                    res.status(500).json({status: "fail", data: {message: 'internal server error'}});
+                                } else {
+                                    event.listOfWaiters.remove(user._id);
+                                    event.save(function (err) {
+                                        if (err) {
+                                            res.status(500).json({status: "fail", data: {message: 'internal server error'}});
+                                        } else {
+                                            res.json({status: "success", data: {message: 'Left event'}});
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     }
                 });
             }
