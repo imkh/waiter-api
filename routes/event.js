@@ -13,6 +13,10 @@ var tokenConfig = config.get('JWT');
 
 const tokenSecret = tokenConfig.tokenSecret;
 
+//@TODO remove callback hell !!!
+//@TODO implement promise or wait !!!
+//@TODO create named callback functions !!!
+
 router.use(methodOverride(function(req, res) {
     if (req.body && typeof req.body === 'object' && '_method' in req.body) {
         var method = req.body._method;
