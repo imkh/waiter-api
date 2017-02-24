@@ -90,6 +90,9 @@ router.use(function(req, res, next) {
 });
 //middleware end
 
+
+//@TODO add push notification and multi waiters management
+
 router.post('/', function(req, res) {
     var causes = [];
 
@@ -133,6 +136,87 @@ router.post('/', function(req, res) {
                                     res.status(500).json({status: "fail", data: {message: 'internal server error'}});
                                 } else {
                                     res.status(200).json({status: "success", data: wait});
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/not-confirmed/:waiterId/waiter', function(req, res) {
+    var waiterId = req.params.waiterId;
+
+    mongoose.model('Wait').findOne({state: 'not confirmed', waitersIds: waiterId}, function(err, wait) {
+        if (err) {
+            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+        } else if (wait === null) {
+            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+        } else {
+            res.status(200).json({status: 'success', data: wait});
+        }
+    });
+});
+
+router.get('/not-confirmed/:clientId/client', function(req, res) {
+    var clientId = req.params.clientId;
+
+    mongoose.model('Wait').findOne({state: 'not confirmed', clientId: clientId}, function(err, wait) {
+        if (err) {
+            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+        } else if (wait === null) {
+            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+        } else {
+            res.status(200).json({status: 'success', data: wait});
+        }
+    });
+});
+
+router.put('/:id/accept', function(req, res) {
+    mongoose.model('Wait').findById(req.id, function(err, wait) {
+        if (err) {
+            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+        } else if (wait === null) {
+            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+        } else {
+            wait.state = 'accepted';
+            wait.save(function (err) {
+                if (err) {
+                    res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+                } else {
+                    res.status(200).json({status: 'success', data: wait});
+                }
+            });
+        }
+    });
+});
+
+router.put('/:id/reject', function(req, res) {
+    mongoose.model('Wait').findById(req.id, function(err, wait) {
+        if (err) {
+            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+        } else if (wait === null) {
+            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+        } else {
+            wait.state = 'rejected';
+            wait.save(function (err) {
+                if (err) {
+                    res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+                } else {
+                    mongoose.model('User').findById(wait.waitersIds[0], function (err, waiter) {
+                        if (err) {
+                            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+                        } else if (waiter === null) {
+                            res.status(404).json({status: 'fail', data: {message: 'waiter not found'}});
+                        } else {
+                            waiter.currentEvent = 'null';
+                            waiter.save(function (err) {
+                                if (err) {
+                                    res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+                                } else {
+                                    res.status(200).json({status: 'success', data: wait});
                                 }
                             });
                         }

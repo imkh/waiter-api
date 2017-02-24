@@ -2,7 +2,11 @@
   "mongo": {
     "URL": "mongodb://localhost:27017/waiter-api"
   },
-    "server": {
+  "wait-socket-server": {
+    "host": "127.0.0.1",
+    "port": 5331
+  },
+  "server": {
     "host": "127.0.0.1",
     "port": 5000
   },
