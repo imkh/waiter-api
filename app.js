@@ -1,6 +1,8 @@
 var express = require('express');
 
 var app = express();
+var cors = require('cors');
+
 
 var db = require('./model/database.js');
 var userModel = require('./model/user.js');
@@ -13,6 +15,7 @@ var config = require('config');
 
 const serverConfig = config.get('server');
 
+app.use(cors());
 app.use('/user', userRoutes);
 app.use('/event', eventRoutes);
 app.use('/wait', waitRoutes);
