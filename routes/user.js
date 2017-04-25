@@ -58,7 +58,6 @@ router.post('/', function(req, res) {
         return ;
     }
 
-    
     var user = {
     	firstname: res.req.body.firstname,
 	    lastname: res.req.body.lastname,
@@ -107,26 +106,30 @@ router.get('/confirm/:id/:confirmToken', function(req, res) {
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
             res.status(500).json({status: "fail"});
-        } else {
-            if (user === null) {
-                res.status(404).json({status: "fail", data: 'user not found'});
-            } else {
-                if (req.params.confirmToken === user.confirmToken) {
-                    if (user.status === 'Not activated') {
-                        user.update({status: 'Activated'}, function (err) {
-                            if (err) {
-                                res.status(500).json({status: "fail", data: {message: 'internal error'}});
-                            } else {
-                                res.json({status: "success", data: {user: user._id.toString(), message: 'User activated'}});
-                            }
-                        });
+	    return ;
+        }
+
+
+        if (user === null) {
+            res.status(404).json({status: "fail", data: 'user not found'});
+	    return ;
+        }
+
+
+        if (req.params.confirmToken === user.confirmToken) {
+            if (user.status === 'Not activated') {
+                user.update({status: 'Activated'}, function (err) {
+                    if (err) {
+                        res.status(500).json({status: "fail", data: {message: 'internal error'}});
                     } else {
-                        res.json({status: "success", data: {user: user._id.toString(), message: 'User already activated'}});
+                        res.json({status: "success", data: {user: user._id.toString(), message: 'User activated'}});
                     }
-                } else {
-                    res.status(404).json({status: "fail", data: 'invalid confirmation token'});
-                }
+                });
+            } else {
+                res.json({status: "success", data: {user: user._id.toString(), message: 'User already activated'}});
             }
+        } else {
+            res.status(404).json({status: "fail", data: 'invalid confirmation token'});
         }
     });
 });
@@ -137,29 +140,34 @@ router.post('/login', function(req, res) {
     mongoose.model('User').findOne({email: email}, function (err, user) {
         if (err) {
             res.status(500).json({status: "fail"});
-        } else {
-            if (user === null) {
-                res.status(500).json({status: "fail"});
-            } else if (res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
-                var token = jwt.sign(user._id, tokenSecret, {
-                    expiresIn: "31d" // expires in 30days hours
-                });
-
-                res.json({status: "success", data: {token: token, user: user._id.toString()}});
-            } else {
-                res.status(500).json({status: "fail"});
-            }
+	    return ;
         }
+        if (user === null) {
+            res.status(500).json({status: "fail"});
+	    return ;
+        }
+
+	if (res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
+            var token = jwt.sign(user._id, tokenSecret, {
+                expiresIn: "31d" // expires in 30days hours
+            });
+	    
+            res.json({status: "success", data: {token: token, user: user._id.toString()}});
+
+        } else {
+            res.status(500).json({status: "fail"});
+        }
+
     });
 });
 
 router.get('/', function(req, res) {
     mongoose.model('User').find({}, function (err, users) {
         if (err) {
-	    res.status(500).jsend.error({message: err}); 
-        } else {
-	    res.status(200).jsend.success(users);
+	    res.status(500).jsend.error({message: err});
+	    return ;
         }
+	res.status(200).jsend.success(users);
     });
 });
 
@@ -230,24 +238,26 @@ router.put('/:id/password', function(req, res) {
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
             res.status(500).json({status: "fail", data: {message: 'unknown user'}});
-        } else {
-            if (user === null) {
-                res.status(404).json({status: "fail", data: 'user not found'});
-            } else {
-                if (res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
-                    user.update({
-                        password: newPassword
-                    }, function (err) {
-                        if (err) {
-                            res.status(500).json({status: "fail", data: {message: 'Internal error'}});
-                        } else {
-                            res.json({status: "success", data: user._id.toString()});
-                        }
-                    });
+	    return ;
+        }
+        if (user === null) {
+            res.status(404).json({status: "fail", data: 'user not found'});
+	    return ;
+        }
+
+
+        if (res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
+            user.update({
+                password: newPassword
+            }, function (err) {
+                if (err) {
+                    res.status(500).json({status: "fail", data: {message: 'Internal error'}});
                 } else {
-                    res.status(500).json({status: "fail", data: {message: 'wrong password'}});
+                    res.json({status: "success", data: user._id.toString()});
                 }
-            }
+            });
+        } else {
+            res.status(500).json({status: "fail", data: {message: 'wrong password'}});
         }
     });
 });
@@ -255,39 +265,38 @@ router.put('/:id/password', function(req, res) {
 router.put('/:id/profile', function(req, res) {
     var causes = [];
 
-    var firstname = res.req.body.firstname;
-    var lastname = res.req.body.lastname;
-    var email = res.req.body.email;
-
+    var user = {
+	firstname: res.req.body.firstname,
+	lastname: res.req.body.lastname,
+	email: res.req.body.email
+    };
+    
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
             res.status(500).json({status: "fail", data: {message: 'unknown user'}});
-        } else {
-            if (user === null) {
-                res.status(404).json({status: "fail", data: {message: 'user not found'}});
-            } else {
-                user.update({
-                    firstname: firstname,
-                    lastname: lastname,
-                    email: email
-                }, {
-                    runValidators: true
-                },
-                function (err) {
-                    if (err) {
-                        if (err.errors.lastname)
-                            causes.push(err.errors.lastname.message)
-                        if (err.errors.firstname)
-                            causes.push(err.errors.firstname.message)
-                        if (err.errors.email)
-                            causes.push(err.errors.email.message)
-                        res.status(500).json({status: "fail", data: {message: 'Internal error', causes: causes}});
-                    } else {
-                        res.json({status: "success"});
-                    }
-                });
-            }
+	    return ;
         }
+        if (user === null) {
+            res.status(404).json({status: "fail", data: {message: 'user not found'}});
+	    return ;
+        }
+
+        user.update(user, {runValidators: true},
+	function (err) {
+	    if (err) {
+		if (err.errors.lastname)
+		    causes.push(err.errors.lastname.message);
+		if (err.errors.firstname)
+		    causes.push(err.errors.firstname.message);
+		if (err.errors.email)
+		    causes.push(err.errors.email.message);
+		res.status(500).json({status: "fail", data: {message: 'Internal error', causes: causes}});
+		return ;
+	    }
+	    res.status(200).jsend.success();
+	});
+
+	
     });
 });
 
@@ -295,19 +304,20 @@ router.delete('/:id', function(req, res) {
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
             res.status(500).json({status: "fail", data: {message: 'unknown user'}});
-        } else {
-            if (user === null) {
-                res.status(404).json({status: "fail", data: {message: 'user not found'}});
-            } else {
-                user.remove(function (err) {
-                    if (err) {
-                        res.status(500).json({status: "fail", data: {message: 'Internal error'}});
-                    } else {
-                        res.json({status: "success"});
-                    }
-                });
-            }
+	    return ;
         }
+	if (user === null) {
+            res.status(404).json({status: "fail", data: {message: 'user not found'}});
+	    return ;
+        }
+
+        user.remove(function (err) {
+            if (err) {
+                res.status(500).json({status: "fail", data: {message: 'Internal error'}});
+		return ;
+            }
+	    res.status(200).jsend.success();
+        });
     });
 });
 
