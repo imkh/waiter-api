@@ -19,7 +19,7 @@ var transporter = nodemailer.createTransport(smtpConfig);
 const saltRounds = bcryptConfig.saltRounds;
 const tokenSecret = tokenConfig.tokenSecret;
 
-router.use(jsend.middleware);
+
 
 //@TODO ACL management
 
@@ -31,6 +31,7 @@ router.use(methodOverride(function(req, res) {
     }
 }));
 
+router.use(jsend.middleware);
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({
     extended: true
@@ -60,12 +61,12 @@ router.post('/', function(req, res) {
 
     var user = {
     	firstname: res.req.body.firstname,
-	    lastname: res.req.body.lastname,
-	    email: res.req.body.email,
-	    password: bcrypt.hashSync(res.req.body.password, salt),
-	    type: res.req.body.type,
-	    status: 'Not activated',
-	    confirmToken: makeid()
+	lastname: res.req.body.lastname,
+	email: res.req.body.email,
+	password: bcrypt.hashSync(res.req.body.password, salt),
+	type: res.req.body.type,
+	status: 'Not activated',
+	confirmToken: makeid()
     };
     
     mongoose.model('User').create(user, function(err, createdUser) {
@@ -80,25 +81,26 @@ router.post('/', function(req, res) {
                 if (err.errors.password)
                     causes.push(err.errors.password.message)
             }
-	    res.status(400).jsend.fail({message: 'fail user registration', causes: causes}); 
-        } else {
-            emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() + '/' + createdUser.confirmToken;
-            transporter.sendMail(emailConfig, function (err) {
-                if (err) {
-                    console.error('Emailing error: ' + err);
-                } else {
-                    console.log('Email sent at ' + emailConfig.to);
-                }
-            });
-
-	    var response = {
-		user: {
-		    id: createdUser._id.toString()
-		}
-	    };
-	    
-            res.status(201).jsend.success(response);
+	    res.status(400).jsend.fail({message: 'fail user registration', causes: causes});
+	    return ;
         }
+	
+        emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() +
+	    '/' + createdUser.confirmToken;
+        transporter.sendMail(emailConfig, function (err) {
+            if (err) {
+                console.error('Emailing error: ' + err);
+		return ;
+            }
+            console.log('Email sent at ' + emailConfig.to);
+        });
+
+	var response = {
+	    user: {
+		id: createdUser._id.toString()
+	    }
+	};
+        res.status(201).jsend.success(response);
     });
 });
 
@@ -108,29 +110,26 @@ router.get('/confirm/:id/:confirmToken', function(req, res) {
             res.status(500).json({status: "fail"});
 	    return ;
         }
-
-
         if (user === null) {
             res.status(404).json({status: "fail", data: 'user not found'});
 	    return ;
         }
-
-
-        if (req.params.confirmToken === user.confirmToken) {
-            if (user.status === 'Not activated') {
-                user.update({status: 'Activated'}, function (err) {
-                    if (err) {
-                        res.status(500).json({status: "fail", data: {message: 'internal error'}});
-                    } else {
-                        res.json({status: "success", data: {user: user._id.toString(), message: 'User activated'}});
-                    }
-                });
-            } else {
-                res.json({status: "success", data: {user: user._id.toString(), message: 'User already activated'}});
+        if (req.params.confirmToken != user.confirmToken) {
+	    res.status(404).json({status: "fail", data: 'invalid confirmation token'});
+	    return ;
+	}
+        if (user.status !== 'Not activated') {
+            res.json({status: "success", data: {user: user._id.toString(), message: 'User already activated'}});
+	    return ;
+	}
+	
+        user.update({status: 'Activated'}, function (err) {
+            if (err) {
+                res.status(500).json({status: "fail", data: {message: 'internal error'}});
+		return ;
             }
-        } else {
-            res.status(404).json({status: "fail", data: 'invalid confirmation token'});
-        }
+            res.json({status: "success", data: {user: user._id.toString(), message: 'User activated'}});
+        });
     });
 });
 
@@ -152,12 +151,40 @@ router.post('/login', function(req, res) {
                 expiresIn: "31d" // expires in 30days hours
             });
 	    
-            res.json({status: "success", data: {token: token, user: user._id.toString()}});
+            res.json({status: "success", data: {token: token, userId: user._id.toString()}});
 
         } else {
             res.status(500).json({status: "fail"});
         }
 
+    });
+});
+
+router.put('/:id/logout', function(req, res) {
+    mongoose.model('User').findById(req.id, function (err, user) {
+        if (err) {
+            res.status(500).json({status: "fail", data: {message: 'unknown user'}});
+	    return ;
+        }
+        if (user === null) {
+            res.status(404).json({status: "fail", data: 'user not found'});
+	    return ;
+        }
+
+        user.update({token: ""}, {runValidators: true},
+	function (err) {
+	    if (err) {
+		if (err.errors.lastname)
+		    causes.push(err.errors.lastname.message);
+		if (err.errors.firstname)
+		    causes.push(err.errors.firstname.message);
+		if (err.errors.email)
+		    causes.push(err.errors.email.message);
+		res.status(500).json({status: "fail", data: {message: 'Internal error', causes: causes}});
+		return ;
+	    }
+	    res.status(200).jsend.success({});
+	});
     });
 });
 
@@ -215,13 +242,13 @@ router.get('/:id', function(req, res) {
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
             res.status(500).json({status: "fail"});
-        } else {
-            if (user === null) {
-                res.status(404).json({status: "fail", data: 'user not found'});
-            } else {
-                res.json({status: "success", data: user});
-            }
+	    return ;
         }
+        if (user === null) {
+            res.status(404).json({status: "fail", data: 'user not found'});
+	    return ;
+        }
+        res.json({status: "success", data: user});
     });
 });
 
@@ -245,7 +272,6 @@ router.put('/:id/password', function(req, res) {
 	    return ;
         }
 
-
         if (res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
             user.update({
                 password: newPassword
@@ -265,7 +291,7 @@ router.put('/:id/password', function(req, res) {
 router.put('/:id/profile', function(req, res) {
     var causes = [];
 
-    var user = {
+    var userChange = {
 	firstname: res.req.body.firstname,
 	lastname: res.req.body.lastname,
 	email: res.req.body.email
@@ -281,7 +307,7 @@ router.put('/:id/profile', function(req, res) {
 	    return ;
         }
 
-        user.update(user, {runValidators: true},
+        user.update(userChange, {runValidators: true},
 	function (err) {
 	    if (err) {
 		if (err.errors.lastname)
@@ -295,8 +321,6 @@ router.put('/:id/profile', function(req, res) {
 	    }
 	    res.status(200).jsend.success();
 	});
-
-	
     });
 });
 

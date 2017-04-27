@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 var waitSchema = new mongoose.Schema({
     clientId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     waitersIds: {type: [mongoose.Schema.Types.ObjectId], ref: 'User'},
+    eventId: {type: mongoose.Schema.Types.ObjectId, ref: 'Event'},
     state: {type: String, enum: ['not confirmed', 'rejected', 'accepted', 'queuing', 'queue done', 'conflict', 'payed']},
     createdAt: {type: Date, default: Date.now},
     updatedAt: {type: Date},

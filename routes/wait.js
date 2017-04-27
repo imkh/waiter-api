@@ -12,9 +12,11 @@ var mongoose = require('mongoose');
 var methodOverride = require('method-override');
 var config = require('config');
 var jwt = require('jsonwebtoken');
+var io = require('socket.io')();
 
 var bcryptConfig = config.get('bcrypt');
 var tokenConfig = config.get('JWT');
+var jsend = require('jsend');
 
 const saltRounds = bcryptConfig.saltRounds;
 const tokenSecret = tokenConfig.tokenSecret;
@@ -38,6 +40,8 @@ router.use(methodOverride(function(req, res) {
     }
 }));
 
+
+router.use(jsend.middleware);
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({
     extended: true
@@ -66,13 +70,14 @@ router.get('/:id', function(req, res) {
     mongoose.model('Wait').findById(req.id, function (err, wait) {
         if (err) {
             res.status(500).json({status: "fail", data: {message: 'internal server error'}});
-        } else {
-            if (event === null) {
-                res.status(404).json({status: "fail", data: {message: 'wait not found'}});
-            } else {
-                res.json({status: "success", data: wait});
-            }
+	    return ;
         }
+
+        if (event === null) {
+            res.status(404).json({status: "fail", data: {message: 'wait not found'}});
+	    return ;
+        }
+	res.status(200).jsend.success(wait);
     });
 });
 
@@ -80,9 +85,9 @@ router.get('/', function(req, res) {
     mongoose.model('Wait').find({}, function (err, waits) {
         if (err) {
             res.status(500).json({status: "fail"});
-        } else {
-            res.json({status: "success", data: waits});
+	    return ;
         }
+	res.status(200).jsend.success(waits);
     });
 });
 
@@ -108,6 +113,7 @@ router.use(function(req, res, next) {
 //@TODO add push notification and multi waiters management
 
 router.post('/', function(req, res) {
+    
     var causes = [];
 
     var userId = res.req.body.userId;
@@ -116,47 +122,56 @@ router.post('/', function(req, res) {
 
     mongoose.model('User').findById(userId, function(err, user) {
         if (err) {
-            res.status(500).json({status: "fail", data: {message: 'internal server error'}});
-        } else if (user === null) {
-            res.status(404).json({status: "fail", data: {message: 'user not found'}});
-        } else {
-            mongoose.model('Event').findById(eventId, function(err, event) {
-                if (err) {
-                    res.status(500).json({status: "fail", data: {message: 'internal server error'}});
-                } else if (event === null) {
-                    res.status(404).json({status: "fail", data: {message: 'event not found'}});
-                } else if (event.listOfWaiters.length < numberOfWaiters) {
-                    res.status(404).json({status: "fail", data: {message: 'not enough waiter'}});
-                } else {
-                    var newWait = {
-                        state: 'not confirmed',
-                        clientId: userId,
-                        waitersIds: []
-                    };
-
-                    newWait.waitersIds.push(event.listOfWaiters[0]);
-                    event.listOfWaiters.remove(event.listOfWaiters[0]);
-
-                    mongoose.model('Wait').create(newWait, function(err, wait) {
-                        if (err) {
-                            if (err.errors) {
-                                if (err.errors.userId)
-                                    causes.push(err.errors.userId.message)
-                            }
-                            res.status(500).json({status: "fail", data: {message: 'fail wait creation', causes: causes}});
-                        } else {
-                            event.save(function(err) {
-                                if (err) {
-                                    res.status(500).json({status: "fail", data: {message: 'internal server error'}});
-                                } else {
-                                    res.status(200).json({status: "success", data: wait});
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+	    res.status(500).jsend.fail('internal server error');
+	    return ;
         }
+	if (user === null) {
+	    res.status(500).jsend.fail('user not found');
+	    return ;
+        } 
+        mongoose.model('Event').findById(eventId, function(err, event) {
+            if (err) {
+		res.status(500).jsend.fail('internal server error');
+		return ;
+            }
+	    if (event === null) {
+		res.status(404).jsend.fail('event not found');
+		return ;
+            }
+	    if (event.listOfWaiters.length < numberOfWaiters) {
+		res.status(404).jsend.fail('not enough waiter');
+		return ;
+            }
+		
+            var newWait = {
+                state: 'not confirmed',
+                clientId: userId,
+		eventId: eventId,
+                waitersIds: []
+            };
+		
+            newWait.waitersIds.push(event.listOfWaiters[0]);
+            event.listOfWaiters.remove(event.listOfWaiters[0]);
+
+            mongoose.model('Wait').create(newWait, function(err, wait) {
+                if (err) {
+                    if (err.errors) {
+                        if (err.errors.userId)
+                            causes.push(err.errors.userId.message)
+                    }
+		    res.status(500).jsend.fail({message: 'fail wait creation', causes: causes});
+		    return ;
+                }
+                event.save(function(err) {
+                    if (err) {
+			res.status(500).jsend.fail('internal server error');
+			return ;
+		    }
+		    res.status(200).jsend.success(wait);
+                });
+            });
+	    
+        });
     });
 });
 
