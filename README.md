@@ -1,4 +1,6 @@
-# WaiterAPI
+# Waiter API
+
+This repository contains the source code for the Waiter API.
 
 ## Documentation
 
@@ -34,14 +36,16 @@ http://brew.sh/
 
 Before running application, don't forget to create the database.
 
-Open mongo shell in a terminal :
+Open mongo shell in a terminal:
 
 `mongo`
 
-Create the database, run the following command in mongo shell :
+Create the database, run the following command in mongo shell:
 
 `use waiter-api`
 
 ### Application
+
+`npm install`
 
 `node app.js`
