@@ -46,6 +46,10 @@ Create the database, run the following command in mongo shell:
 
 ### Application
 
-`npm install`
+``` bash
+# install dependencies
+npm install
 
-`node app.js`
+# run application at localhost:5000
+node app.js
+```
