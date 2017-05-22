@@ -68,7 +68,7 @@ router.post('/', function(req, res) {
 	status: 'Not activated',
 	confirmToken: makeid()
     };
-    
+
     mongoose.model('User').create(user, function(err, createdUser) {
         if (err) {
             if (err.errors) {
@@ -84,7 +84,7 @@ router.post('/', function(req, res) {
 	    res.status(400).jsend.fail({message: 'fail user registration', causes: causes});
 	    return ;
         }
-	
+
         emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() +
 	    '/' + createdUser.confirmToken;
         transporter.sendMail(emailConfig, function (err) {
@@ -122,7 +122,7 @@ router.get('/confirm/:id/:confirmToken', function(req, res) {
             res.json({status: "success", data: {user: user._id.toString(), message: 'User already activated'}});
 	    return ;
 	}
-	
+
         user.update({status: 'Activated'}, function (err) {
             if (err) {
                 res.status(500).json({status: "fail", data: {message: 'internal error'}});
@@ -150,8 +150,8 @@ router.post('/login', function(req, res) {
             var token = jwt.sign(user._id, tokenSecret, {
                 expiresIn: "31d" // expires in 30days hours
             });
-	    
-            res.json({status: "success", data: {token: token, userId: user._id.toString()}});
+
+            res.json({status: "success", data: {token: token, userId: user._id.toString(), firstName: user.firstname}});
 
         } else {
             res.status(500).json({status: "fail"});
@@ -296,7 +296,7 @@ router.put('/:id/profile', function(req, res) {
 	lastname: res.req.body.lastname,
 	email: res.req.body.email
     };
-    
+
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
             res.status(500).json({status: "fail", data: {message: 'unknown user'}});
