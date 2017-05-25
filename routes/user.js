@@ -97,7 +97,7 @@ router.post('/', function(req, res) {
 
 	var response = {
 	    user: {
-		id: createdUser._id.toString()
+		_id: createdUser._id.toString()
 	    }
 	};
         res.status(201).jsend.success(response);
