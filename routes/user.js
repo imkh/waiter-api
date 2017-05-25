@@ -100,7 +100,7 @@ router.post('/', function(req, res) {
                 if (err.errors.email)
                     causes.push(err.errors.email.message);
                 if (err.errors.password)
-                    causes.push(err.errors.password.message)
+                    causes.push(err.errors.password.message);
             }
             res.status(400).jsend.fail({message: 'fail user registration', causes: causes});
             return ;
@@ -242,7 +242,7 @@ router.param('id', function(req, res, next, id) {
     mongoose.model('User').findById(id, function (err, user) {
         if (err) {
             console.log(id + ' was not found');
-            res.status(404)
+            res.status(404);
             var err = new Error('Not Found');
             err.status = 404;
             res.format({
