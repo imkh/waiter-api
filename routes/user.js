@@ -104,6 +104,28 @@ router.post('/', function(req, res) {
     });
 });
 
+router.get('/available/:email', function(req, res) {
+  mongoose.model('User').findOne({email: req.params.email}, function (err, foundUser) {
+    if (err) {
+      res.status(500).json({message: "fail"});
+      return ;
+    }
+    if (foundUser != null) {
+      res.status(400).json({message: 'Email already used.'});
+      return ;
+    }
+    res.json({message: 'Email is available.'});
+  })
+
+    // mongoose.model('User').findById(req.id, function (err, user) {
+    //     if (user === null) {
+    //         res.status(404).json({status: "fail", data: 'user not found'});
+	  //   return ;
+    //     }
+    //     res.json({status: "success", data: user});
+    // });
+});
+
 router.get('/confirm/:id/:confirmToken', function(req, res) {
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
