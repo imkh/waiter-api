@@ -169,27 +169,40 @@ router.get('/confirm/:id/:confirmToken', function(req, res) {
  * Route Login/Signin/Sign in
  */
 router.post('/login', function(req, res) {
-    var email = res.req.body.email;
+    if (!res.req.body.email) {
+        res.status(httpCodes.badRequest).jsend.fail({message: "An email address is required"});
+        return ;
+    }
+    if (!res.req.body.password) {
+        res.status(httpCodes.badRequest).jsend.fail({message: "A password is required"});
+        return ;
+    }
 
-    mongoose.model('User').findOne({email: email}, function (err, user) {
+    mongoose.model('User').findOne({email: res.req.body.email}, function (err, user) {
         if (err) {
-            res.status(500).json({status: "fail"});
+            res.status(err.statusCode).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-            res.status(500).json({status: "fail"});
+            res.status(httpCodes.notFound).jsend.fail({message: "User not found"});
             return ;
         }
-
-        if (res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
+        if (bcrypt.compareSync(res.req.body.password, user.password)) {
             var token = jwt.sign(user._id, tokenSecret, {
                 expiresIn: "31d" // expires in 30days hours
             });
+            var response = {
+                token: token,
+                user: {
+                    _id: user._id.toString(),
+                    firstname: user.firstname
+                }
+            };
 
-            res.json({status: "success", data: {token: token, userId: user._id.toString(), firstName: user.firstname}});
+            res.status(httpCodes.OK).jsend.success(response);
 
         } else {
-            res.status(500).json({status: "fail"});
+            res.status(httpCodes.unauthorized).jsend.fail({message: "Incorrect password"});
         }
 
     });
