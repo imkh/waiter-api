@@ -195,7 +195,8 @@ router.post('/login', function(req, res) {
                 token: token,
                 user: {
                     _id: user._id.toString(),
-                    firstname: user.firstname
+                    firstname: user.firstname,
+                    lastname: user.lastname
                 }
             };
 
