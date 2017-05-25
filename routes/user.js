@@ -126,7 +126,7 @@ router.post('/', function(req, res) {
         var response = {
             token: token,
             user: {
-                _id: createdUser._id.toString(),
+                _id: createdUser._id.toString()
             }
         };
         res.status(httpCodes.created).jsend.success(response);
