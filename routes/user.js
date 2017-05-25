@@ -75,8 +75,12 @@ router.post('/', function(req, res) {
     var causes = [];
 
     if (!res.req.body.password) {
-        causes.push('Path `Password` is required.')
-        res.status(400).jsend.fail({message: 'fail user registration', causes: causes});
+        causes.push('A password is required');
+        res.status(httpCodes.badRequest).jsend.fail({message: 'User registration failed', causes: causes});
+        return ;
+    } else if (res.req.body.password.length < 8) {
+        causes.push('A password must be at least 8 characters');
+        res.status(httpCodes.badRequest).jsend.fail({message: 'User registration failed', causes: causes});
         return ;
     }
 
@@ -102,12 +106,11 @@ router.post('/', function(req, res) {
                 if (err.errors.password)
                     causes.push(err.errors.password.message);
             }
-            res.status(400).jsend.fail({message: 'fail user registration', causes: causes});
+            res.status(httpCodes.badRequest).jsend.fail({message: 'User registration failed', causes: causes});
             return ;
         }
 
-        emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() +
-            '/' + createdUser.confirmToken;
+        emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() + '/' + createdUser.confirmToken;
         transporter.sendMail(emailConfig, function (err) {
             if (err) {
                 console.error('Emailing error: ' + err);
@@ -116,12 +119,17 @@ router.post('/', function(req, res) {
             console.log('Email sent at ' + emailConfig.to);
         });
 
+        var token = jwt.sign(createdUser._id, tokenSecret, {
+            expiresIn: "31d" // expires in 30days hours
+        });
+
         var response = {
+            token: token,
             user: {
-                _id: createdUser._id.toString()
+                _id: createdUser._id.toString(),
             }
         };
-        res.status(201).jsend.success(response);
+        res.status(httpCodes.created).jsend.success(response);
     });
 });
 
