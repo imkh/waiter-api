@@ -13,6 +13,7 @@ var bcryptConfig = config.get('bcrypt');
 var tokenConfig = config.get('JWT');
 var emailConfig = config.get('email');
 var smtpConfig = config.get('smtp');
+var httpCodes = config.get('httpCodes');
 
 var transporter = nodemailer.createTransport(smtpConfig);
 
@@ -55,14 +56,14 @@ function makeid()
 router.get('/available/:email', function(req, res) {
     mongoose.model('User').findOne({email: req.params.email}, function (err, foundUser) {
         if (err) {
-            res.status(500).json({message: "fail"});
+            res.status(err.statusCode).jsend.error({message: err.message});
             return ;
         }
         if (foundUser !== null) {
-            res.status(400).json({message: 'Email already used.'});
+            res.status(httpCodes.conflict).jsend.fail({message: 'This email address is already used'});
             return ;
         }
-        res.json({message: 'Email is available.'});
+        res.jsend.success({message: 'This email address is available'});
     })
 });
 
