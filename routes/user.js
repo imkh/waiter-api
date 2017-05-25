@@ -93,11 +93,11 @@ router.post('/', function(req, res) {
         if (err) {
             if (err.errors) {
                 if (err.errors.lastname)
-                    causes.push(err.errors.lastname.message)
+                    causes.push(err.errors.lastname.message);
                 if (err.errors.firstname)
-                    causes.push(err.errors.firstname.message)
+                    causes.push(err.errors.firstname.message);
                 if (err.errors.email)
-                    causes.push(err.errors.email.message)
+                    causes.push(err.errors.email.message);
                 if (err.errors.password)
                     causes.push(err.errors.password.message)
             }
