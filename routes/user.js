@@ -169,12 +169,14 @@ router.get('/confirm/:id/:confirmToken', function(req, res) {
  * Route Login/Signin/Sign in
  */
 router.post('/login', function(req, res) {
-    if (!res.req.body.email) {
-        res.status(httpCodes.badRequest).jsend.fail({message: "An email address is required"});
-        return ;
-    }
-    if (!res.req.body.password) {
-        res.status(httpCodes.badRequest).jsend.fail({message: "A password is required"});
+    var causes = [];
+
+    if (!res.req.body.email)
+        causes.push('An email address is required');
+    if (!res.req.body.password)
+        causes.push('A password is required');
+    if (causes.length > 0) {
+        res.status(httpCodes.badRequest).jsend.fail({message: 'User login failed', causes: causes});
         return ;
     }
 
@@ -184,7 +186,8 @@ router.post('/login', function(req, res) {
             return ;
         }
         if (user === null) {
-            res.status(httpCodes.notFound).jsend.fail({message: "User not found"});
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'User login failed', causes: causes});
             return ;
         }
         if (bcrypt.compareSync(res.req.body.password, user.password)) {
@@ -203,7 +206,8 @@ router.post('/login', function(req, res) {
             res.status(httpCodes.OK).jsend.success(response);
 
         } else {
-            res.status(httpCodes.unauthorized).jsend.fail({message: "Incorrect password"});
+            causes.push('Incorrect password');
+            res.status(httpCodes.unauthorized).jsend.fail({message: 'User login failed', causes: causes});
         }
 
     });
