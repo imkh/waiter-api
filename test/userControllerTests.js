@@ -20,6 +20,10 @@ chai.use(chaiHttp);
 
 var userId;
 var userToken;
+var userFirstName;
+var userLastName;
+var userEmail;
+var userPassword;
 
 describe('User', function(){
     //Before each test we empty the database
@@ -30,151 +34,365 @@ describe('User', function(){
         });
     });
 
+    // describe('/GET users', function(){
+    //     it('it should GET all the users', function(done){
+    //         chai.request(app)
+    //             .get('/user')
+    //             .end(function(err, res)  {
+    //                 expect(res).to.have.status(200);
+    //                 expect(res.body).to.have.property('status')
+    //                     .and.to.equal('success');
+    //                 expect(res.body).to.have.property('data')
+    //                     .and.to.deep.equal([]);
+    //                 done();
+    //             });
+    //     });
+    // });
 
-    describe('/GET users', function(){
-        it('it should GET all the users', function(done){
-            chai.request(app)
-                .get('/user')
-                .end(function(err, res)  {
-                    expect(res).to.have.status(200);
-                    expect(res.body).to.have.property('status')
-                        .and.to.equal('success');
-                    expect(res.body).to.have.property('data')
-                        .and.to.deep.equal([]);
-                    done();
-                });
-        });
-    });
-
+    /**
+     * Test a successful user registration
+     */
     describe('/POST user', function(){
-        it('it should /POST a user', function(done){
+        it('it should register the user `hello@world.com` and get an auth token', function(done){
             var data = {
-                firstname: 'Eli',
-                lastname: "vomaye",
-                email: 'bomaye@gmail.com',
-                password: 'zazaza',
+                firstname: 'Hello',
+                lastname: 'World',
+                email: 'hello@world.com',
+                password: 'helloworld',
                 type: 0
             };
+
+            userFirstName = data.firstname;
+            userLastName = data.lastname;
+            userEmail = data.email;
+            userPassword = data.password;
 
             chai.request(app)
                 .post('/user')
                 .send(data)
                 .end(function(err, res)  {
                     expect(res).to.have.status(201);
-                    expect(res.body).to.have.property('status')
-                        .and.to.equal('success');
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('token');
+                    expect(res.body.data.user).to.have.property('_id');
+                    userId = res.body.data.user._id;
+                    userToken = res.body.data.token;
                     done();
                 });
         });
     });
 
-    describe('/LOGIN user', function(){
-        it('it should LOGIN a user and get a token', function(done){
-            var data = {
-                email: 'bomaye@gmail.com',
-                password: 'zazaza'
-            };
+    /**
+     * Test failed user registrations
+     */
+    describe('/POST user', function(){
+        var data = {
+            firstname: '',
+            lastname: '',
+            email: '',
+            password: '',
+            type: 0
+        };
 
+        it('it should fail to register (password required)', function(done){
+            chai.request(app)
+                .post('/user')
+                .send(data)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(400);
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
+                    expect(res.body.data).to.have.property('causes');
+                    expect(res.body.data.causes[0]).to.equal('A password is required');
+                    done();
+                });
+        });
+
+        it('it should fail to register (password should be 8 characters at least)', function(done){
+            data.password = 'qwerty';
+            chai.request(app)
+                .post('/user')
+                .send(data)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(400);
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
+                    expect(res.body.data).to.have.property('causes');
+                    expect(res.body.data.causes[0]).to.equal('A password must be at least 8 characters');
+                    done();
+                });
+        });
+
+        it('it should fail to register (first name, last name and email are required)', function(done){
+            data.password = 'qwertyuiop';
+            chai.request(app)
+                .post('/user')
+                .send(data)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(400);
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
+                    expect(res.body.data).to.have.property('causes');
+                    expect(res.body.data.causes[0]).to.equal('Path `lastname` is required.');
+                    expect(res.body.data.causes[1]).to.equal('Path `firstname` is required.');
+                    expect(res.body.data.causes[2]).to.equal('Path `email` is required.');
+                    done();
+                });
+        });
+
+        it('it should fail to register (email already used)', function(done){
+            data.firstname = userFirstName;
+            data.lastname = userLastName;
+            data.email = userEmail;
+            data.password = userPassword;
+            chai.request(app)
+                .post('/user')
+                .send(data)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(400);
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
+                    expect(res.body.data).to.have.property('causes');
+                    expect(res.body.data.causes[0]).to.equal('This email address is already used');
+                    done();
+                });
+        });
+
+    });
+
+    /**
+     * Test an available email address
+     */
+    describe('/AVAILABLE email', function(){
+        it('email `email@available.com` should be available', function(done){
+            chai.request(app)
+                .get('/user/available/' + 'email@available.com')
+                .end(function(err, res)  {
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('This email address is available');
+                    done();
+                });
+        });
+    });
+
+    /**
+     * Test an already used email address
+     */
+    describe('/AVAILABLE email', function(){
+        it('email `' + userEmail + '` should be already used', function(done){
+            chai.request(app)
+                .get('/user/available/' + userEmail)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(409);
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('This email address is already used');
+                    done();
+                });
+        });
+    });
+
+    /**
+     * Test a successful login
+     */
+    describe('/LOGIN user', function(){
+        it('it should LOGIN the user `hello@world.com` and get an auth token', function(done){
+            var data = {
+                email: 'hello@world.com',
+                password: 'helloworld'
+            };
 
             chai.request(app)
                 .post('/user/login')
                 .send(data)
                 .end(function(err, res){
                     expect(res).to.have.status(200);
-                    expect(res.body).to.have.property('status')
-                        .and.to.equal('success');
-                    userToken = res.body.data.token;
-                    userId = res.body.data.user;
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('token');
+                    expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
+                    expect(res.body.data.user).to.have.property('firstname').and.to.equal(userFirstName);
+                    expect(res.body.data.user).to.have.property('lastname').and.to.equal(userLastName);
                     done();
                 });
         });
     });
 
-    describe('/GET user by ID', function(){
-        it('it should GET user by its ID', function(done){
+    /**
+     * Test failed login
+     */
+    describe('/LOGIN user', function(){
+        var data = {
+            email: '',
+            password: ''
+        };
+
+        it('it should fail to login (email and password required)', function(done){
             chai.request(app)
-                .get('/user/' + userId)
-                .set('x-access-token', userToken)
-                .end(function(err, res)  {
-                    expect(res).to.have.status(200);
-                    expect(res.body).to.have.property('status')
-                        .and.to.equal('success');
-                    done();
-                });
-        });
-    });
-
-    describe('/PUT password', function(){
-        this.timeout(5000);
-        it('it should change a password with user ID', function(done){
-
-            var data = {
-                password:'zazaza',
-                newPassword: 'bobobo'
-            };
-
-            chai.request(app)
-                .put('/user/' + userId + "/password")
+                .post('/user/login')
                 .send(data)
-                .set('x-access-token', userToken)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
-                    expect(res.body).to.have.property('status')
-                        .and.to.equal('success');
+                    expect(res).to.have.status(400);
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('User login failed');
+                    expect(res.body.data).to.have.property('causes');
+                    expect(res.body.data.causes[0]).to.equal('An email address is required');
+                    expect(res.body.data.causes[1]).to.equal('A password is required');
                     done();
                 });
         });
-    });
 
-    describe('/PUT profile', function(){
-        this.timeout(5000);
-        it('it should change profile informations', function(done){
-
-            var data = {
-                firstname: 'Ali',
-                lastname: "Bomaye",
-                email: 'ali.bomaye@gmail.com'
-            };
-
+        it('it should fail to login (user not found)', function(done){
+            data.email = 'user@notfound.com';
+            data.password = 'incorrect-password';
             chai.request(app)
-                .put('/user/' + userId + "/profile")
+                .post('/user/login')
                 .send(data)
-                .set('x-access-token', userToken)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
-                    expect(res.body).to.have.property('status')
-                        .and.to.equal('success');
-                    done();
-                });
-        });
-    });
-
-    describe('/DELETE user', function(){
-        it('it should DELETE a user', function(done){
-            chai.request(app)
-                .delete('/user/' + userId)
-                .set('x-access-token', userToken)
-                .end(function(err, res){
-                    expect(res).to.have.status(200);
-                    expect(res.body).to.have.property('status')
-                        .and.to.equal('success');
-                    done();
-                });
-        });
-    });
-
-    describe('/GET fake route', function(){
-        it('it should return an error 404', function(done){
-            chai.request(app)
-                .delete('/user/' + userId)
-                .set('x-access-token', userToken)
-                .end(function(err, res){
                     expect(res).to.have.status(404);
-                    expect(res.body).to.have.property('status')
-                        .and.to.equal('fail');
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('User login failed');
+                    expect(res.body.data).to.have.property('causes');
+                    expect(res.body.data.causes[0]).to.equal('User not found');
+                    done();
+                });
+        });
+
+        it('it should fail to login (incorrect password)', function(done){
+            data.email = userEmail;
+            data.password = 'incorrect-password';
+            chai.request(app)
+                .post('/user/login')
+                .send(data)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(401);
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('User login failed');
+                    expect(res.body.data).to.have.property('causes');
+                    expect(res.body.data.causes[0]).to.equal('Incorrect password');
                     done();
                 });
         });
     });
+
+
+    // describe('/LOGIN user', function(){
+    //     it('it should LOGIN a user and get a token', function(done){
+    //         var data = {
+    //             email: 'bomaye@gmail.com',
+    //             password: 'zazaza'
+    //         };
+    //
+    //
+    //         chai.request(app)
+    //             .post('/user/login')
+    //             .send(data)
+    //             .end(function(err, res){
+    //                 expect(res).to.have.status(200);
+    //                 expect(res.body).to.have.property('status')
+    //                     .and.to.equal('success');
+    //                 userToken = res.body.data.token;
+    //                 userId = res.body.data.user;
+    //                 done();
+    //             });
+    //     });
+    // });
+    //
+    // describe('/GET user by ID', function(){
+    //     it('it should GET user by its ID', function(done){
+    //         chai.request(app)
+    //             .get('/user/' + userId)
+    //             .set('x-access-token', userToken)
+    //             .end(function(err, res)  {
+    //                 expect(res).to.have.status(200);
+    //                 expect(res.body).to.have.property('status')
+    //                     .and.to.equal('success');
+    //                 done();
+    //             });
+    //     });
+    // });
+    //
+    // describe('/PUT password', function(){
+    //     this.timeout(5000);
+    //     it('it should change a password with user ID', function(done){
+    //
+    //         var data = {
+    //             password:'zazaza',
+    //             newPassword: 'bobobo'
+    //         };
+    //
+    //         chai.request(app)
+    //             .put('/user/' + userId + "/password")
+    //             .send(data)
+    //             .set('x-access-token', userToken)
+    //             .end(function(err, res)  {
+    //                 expect(res).to.have.status(200);
+    //                 expect(res.body).to.have.property('status')
+    //                     .and.to.equal('success');
+    //                 done();
+    //             });
+    //     });
+    // });
+    //
+    // describe('/PUT profile', function(){
+    //     this.timeout(5000);
+    //     it('it should change profile informations', function(done){
+    //
+    //         var data = {
+    //             firstname: 'Ali',
+    //             lastname: "Bomaye",
+    //             email: 'ali.bomaye@gmail.com'
+    //         };
+    //
+    //         chai.request(app)
+    //             .put('/user/' + userId + "/profile")
+    //             .send(data)
+    //             .set('x-access-token', userToken)
+    //             .end(function(err, res)  {
+    //                 expect(res).to.have.status(200);
+    //                 expect(res.body).to.have.property('status')
+    //                     .and.to.equal('success');
+    //                 done();
+    //             });
+    //     });
+    // });
+    //
+    // describe('/DELETE user', function(){
+    //     it('it should DELETE a user', function(done){
+    //         chai.request(app)
+    //             .delete('/user/' + userId)
+    //             .set('x-access-token', userToken)
+    //             .end(function(err, res){
+    //                 expect(res).to.have.status(200);
+    //                 expect(res.body).to.have.property('status')
+    //                     .and.to.equal('success');
+    //                 done();
+    //             });
+    //     });
+    // });
+    //
+    // describe('/GET fake route', function(){
+    //     it('it should return an error 404', function(done){
+    //         chai.request(app)
+    //             .delete('/user/' + userId)
+    //             .set('x-access-token', userToken)
+    //             .end(function(err, res){
+    //                 expect(res).to.have.status(404);
+    //                 expect(res.body).to.have.property('status')
+    //                     .and.to.equal('fail');
+    //                 done();
+    //             });
+    //     });
+    // });
 });
 
