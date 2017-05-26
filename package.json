@@ -1,7 +1,7 @@
 {
   "name": "waiter-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Waiter API",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YellowKyu/WaiterAPI.git"
+    "url": "git+https://github.com/imkh/waiter-api.git"
   },
-  "author": "Quentin Huang & Co.",
+  "author": "Waiter Development Team",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/YellowKyu/WaiterAPI/issues"
+    "url": "https://github.com/imkh/waiter-api"
   },
-  "homepage": "https://github.com/YellowKyu/WaiterAPI#readme",
+  "homepage": "https://github.com/imkh/waiter-api#readme",
   "dependencies": {
     "bcrypt": "^1.0.2",
     "body-parser": "^1.16.0",
