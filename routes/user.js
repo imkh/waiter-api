@@ -90,21 +90,27 @@ router.post('/', function(req, res) {
         email: res.req.body.email,
         password: bcrypt.hashSync(res.req.body.password, salt),
         type: res.req.body.type,
-        status: 'Not activated',
+        status: 'not-activated',
         confirmToken: makeid()
     };
 
     mongoose.model('User').create(user, function(err, createdUser) {
         if (err) {
             if (err.errors) {
-                if (err.errors.lastname)
-                    causes.push(err.errors.lastname.message);
                 if (err.errors.firstname)
                     causes.push(err.errors.firstname.message);
+                if (err.errors.lastname)
+                    causes.push(err.errors.lastname.message);
                 if (err.errors.email)
                     causes.push(err.errors.email.message);
                 if (err.errors.password)
                     causes.push(err.errors.password.message);
+                if (err.errors.type)
+                    causes.push(err.errors.type.message);
+                if (err.errors.status)
+                    causes.push(err.errors.status.message);
+                if (err.errors.confirmToken)
+                    causes.push(err.errors.confirmToken.message);
             }
             res.status(httpCodes.badRequest).jsend.fail({message: 'User registration failed', causes: causes});
             return ;
@@ -304,22 +310,22 @@ router.param('id', function(req, res, next, id) {
 });
 
 /**
- * ??
+ * Middleware verify token
  */
 router.use(function(req, res, next) {
     var token = req.body.token || req.query.token || req.headers['x-access-token'];
-    if (token) {
-        jwt.verify(token, tokenSecret, function(err, decoded) {
-            if (err) {
-                return res.json({status: "fail", data: {message: 'Failed to authenticate token.'}});
-            } else {
-                req.decoded = decoded;
-                next();
-            }
-        });
-    } else {
-        return res.status(403).send({status: "fail", data: {message: 'No token provided.'}});
+    if (!token) {
+        res.status(httpCodes.badRequest).jsend.fail({message: 'No token provided.'});
+        return ;
     }
+    jwt.verify(token, tokenSecret, function(err, decoded) {
+        if (err) {
+            res.status(httpCodes.unauthorized).jsend.fail({message: 'Failed to authenticate token'});
+            return ;
+        }
+        req.decoded = decoded;
+        next();
+    });
 });
 // [end] Middleware
 
