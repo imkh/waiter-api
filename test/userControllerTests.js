@@ -137,8 +137,8 @@ describe('User', function(){
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
                     expect(res.body.data).to.have.property('causes');
-                    expect(res.body.data.causes[0]).to.equal('Path `lastname` is required.');
-                    expect(res.body.data.causes[1]).to.equal('Path `firstname` is required.');
+                    expect(res.body.data.causes[0]).to.equal('Path `firstname` is required.');
+                    expect(res.body.data.causes[1]).to.equal('Path `lastname` is required.');
                     expect(res.body.data.causes[2]).to.equal('Path `email` is required.');
                     done();
                 });

@@ -90,21 +90,27 @@ router.post('/', function(req, res) {
         email: res.req.body.email,
         password: bcrypt.hashSync(res.req.body.password, salt),
         type: res.req.body.type,
-        status: 'Not activated',
+        status: 'not-activated',
         confirmToken: makeid()
     };
 
     mongoose.model('User').create(user, function(err, createdUser) {
         if (err) {
             if (err.errors) {
-                if (err.errors.lastname)
-                    causes.push(err.errors.lastname.message);
                 if (err.errors.firstname)
                     causes.push(err.errors.firstname.message);
+                if (err.errors.lastname)
+                    causes.push(err.errors.lastname.message);
                 if (err.errors.email)
                     causes.push(err.errors.email.message);
                 if (err.errors.password)
                     causes.push(err.errors.password.message);
+                if (err.errors.type)
+                    causes.push(err.errors.type.message);
+                if (err.errors.status)
+                    causes.push(err.errors.status.message);
+                if (err.errors.confirmToken)
+                    causes.push(err.errors.confirmToken.message);
             }
             res.status(httpCodes.badRequest).jsend.fail({message: 'User registration failed', causes: causes});
             return ;
