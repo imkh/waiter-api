@@ -259,7 +259,7 @@ router.put('/:id/logout', function(req, res) {
 router.get('/', function(req, res) {
     mongoose.model('User').find({}, function (err, users) {
         if (err) {
-	    res.status(err.statusCode).jsend.error({message: err.message});
+	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
 	    return ;
         }
 	res.jsend.success(users);
@@ -273,21 +273,33 @@ router.get('/', function(req, res) {
  * ??
  */
 router.param('id', function(req, res, next, id) {
+    var causes = [];
     mongoose.model('User').findById(id, function (err, user) {
-        if (err) {
-            console.log(id + ' was not found');
-            res.status(404);
-            var err = new Error('Not Found');
-            err.status = 404;
-            res.format({
-                json: function(){
-                    res.status(404).json({status: "fail", data : { message: err.status  + ' ' + err}});
-                }
-            });
-        } else {
-            req.id = id;
-            next();
+	if (err) {
+	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+	    return ;
+	}
+        if (user === null) {
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Logout failed', causes: causes});
+            return ;
         }
+        next();
+	
+	/* if (err) {
+	 *     console.log(id + ' was not found');
+	 *     res.status(404);
+	 *     var err = new Error('Not Found');
+	 *     err.status = 404;
+	 *     res.format({
+	 *         json: function(){
+	 *             res.status(404).json({status: "fail", data : { message: err.status  + ' ' + err}});
+	 *         }
+	 *     });
+	 * } else {
+	 *     req.id = id;
+	 *     next();
+	 * }*/
     });
 });
 
@@ -336,9 +348,12 @@ router.get('/:id', function(req, res) {
  * Route Update Password
  */
 router.put('/:id/password', function(req, res) {
+    var causes = [];
 
+    
     if (!res.req.body.newPassword) {
-        res.status(500).json({status: "fail", data: {message: 'Missing new password'}});
+	causes.push('Missing new password');
+	res.status(httpCodes.badRequest).jsend.fail({message: 'Update password failed', causes: causes});
         return ;
     }
 
@@ -347,27 +362,36 @@ router.put('/:id/password', function(req, res) {
 
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-            res.status(500).json({status: "fail", data: {message: 'unknown user'}});
+	    res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-            res.status(404).json({status: "fail", data: 'user not found'});
+	    causes.push('user not found');
+	    res.status(httpCodes.notFound).jsend.fail({message: 'Update password failed', causes: causes});
             return ;
         }
+        if (!res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
+	    causes.push('wrong password');
+	    res.status(httpCodes.badRequest).jsend.fail({message: 'Update password failed', causes: causes});
+	    return ;
+	}
 
-        if (res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
-            user.update({
-                password: newPassword
-            }, function (err) {
-                if (err) {
-                    res.status(500).json({status: "fail", data: {message: 'Internal error'}});
-                } else {
-                    res.json({status: "success", data: user._id.toString()});
-                }
-            });
-        } else {
-            res.status(500).json({status: "fail", data: {message: 'wrong password'}});
-        }
+        user.update({
+            password: newPassword
+        }, function (err) {
+            if (err) {
+		res.status(httpCodes.badRequest).jsend.error({message: err.message});
+		return ;
+            }
+
+	    var response = {
+		user: {
+		    _id: user._id.toString()
+		    }
+	    };
+	    
+	    res.jsend.success(response);
+        });
     });
 });
 
@@ -385,11 +409,12 @@ router.put('/:id/profile', function(req, res) {
 
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-            res.status(500).json({status: "fail", data: {message: 'unknown user'}});
+	    res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-            res.status(404).json({status: "fail", data: {message: 'user not found'}});
+	    causes.push('user not found');
+	    res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
             return ;
         }
 
@@ -402,10 +427,10 @@ router.put('/:id/profile', function(req, res) {
                         causes.push(err.errors.firstname.message);
                     if (err.errors.email)
                         causes.push(err.errors.email.message);
-                    res.status(500).json({status: "fail", data: {message: 'Internal error', causes: causes}});
+		    res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
                     return ;
                 }
-                res.status(200).jsend.success();
+                res.jsend.success();
             });
     });
 });
@@ -416,20 +441,21 @@ router.put('/:id/profile', function(req, res) {
 router.delete('/:id', function(req, res) {
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-            res.status(500).json({status: "fail", data: {message: 'unknown user'}});
+	    res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-            res.status(404).json({status: "fail", data: {message: 'user not found'}});
+	    causes.push('user not found');
+	    res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
             return ;
         }
 
         user.remove(function (err) {
             if (err) {
-                res.status(500).json({status: "fail", data: {message: 'Internal error'}});
+		res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;
             }
-            res.status(200).jsend.success();
+            res.jsend.success();
         });
     });
 });
