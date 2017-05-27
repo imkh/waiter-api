@@ -217,29 +217,26 @@ router.post('/login', function(req, res) {
  * Route Logout/Log out
  */
 router.put('/:id/logout', function(req, res) {
+    var causes = [];
+
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-            res.status(500).json({status: "fail", data: {message: 'unknown user'}});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-            res.status(404).json({status: "fail", data: 'user not found'});
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Logout failed', causes: causes});
             return ;
         }
 
         user.update({token: ""}, {runValidators: true},
             function (err) {
                 if (err) {
-                    if (err.errors.lastname)
-                        causes.push(err.errors.lastname.message);
-                    if (err.errors.firstname)
-                        causes.push(err.errors.firstname.message);
-                    if (err.errors.email)
-                        causes.push(err.errors.email.message);
-                    res.status(500).json({status: "fail", data: {message: 'Internal error', causes: causes}});
+                    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                     return ;
                 }
-                res.status(200).jsend.success({});
+                res.jsend.success({});
             });
     });
 });
