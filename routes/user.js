@@ -292,22 +292,22 @@ router.param('id', function(req, res, next, id) {
 });
 
 /**
- * ??
+ * Middleware verify token
  */
 router.use(function(req, res, next) {
     var token = req.body.token || req.query.token || req.headers['x-access-token'];
-    if (token) {
-        jwt.verify(token, tokenSecret, function(err, decoded) {
-            if (err) {
-                return res.json({status: "fail", data: {message: 'Failed to authenticate token.'}});
-            } else {
-                req.decoded = decoded;
-                next();
-            }
-        });
-    } else {
-        return res.status(403).send({status: "fail", data: {message: 'No token provided.'}});
+    if (!token) {
+        res.status(httpCodes.badRequest).jsend.fail({message: 'No token provided.'});
+        return ;
     }
+    jwt.verify(token, tokenSecret, function(err, decoded) {
+        if (err) {
+            res.status(httpCodes.unauthorized).jsend.fail({message: 'Failed to authenticate token'});
+            return ;
+        }
+        req.decoded = decoded;
+        next();
+    });
 });
 // [end] Middleware
 
