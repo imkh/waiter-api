@@ -15,7 +15,6 @@ var app = require('../app');
 
 const serverConfig = config.get('server');
 
-
 chai.use(chaiHttp);
 
 var userId;
@@ -285,7 +284,6 @@ describe('User', function(){
         });
     });
 
-
     // describe('/LOGIN user', function(){
     //     it('it should LOGIN a user and get a token', function(done){
     //         var data = {
@@ -395,4 +393,3 @@ describe('User', function(){
     //     });
     // });
 });
-
