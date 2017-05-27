@@ -279,9 +279,6 @@ router.put('/:id/queue-start', function(req, res) {
             res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
 	    return ;
         }
-
-
-	// TODO:: check state
 	
 	wait.nresponses.push(waiterId);
 	if (wait.nresponses.length == wait.waitersIds.length) {

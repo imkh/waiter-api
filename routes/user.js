@@ -56,7 +56,7 @@ function makeid()
 router.get('/available/:email', function(req, res) {
     mongoose.model('User').findOne({email: req.params.email}, function (err, foundUser) {
         if (err) {
-            res.status(err.statusCode).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (foundUser !== null) {
@@ -110,14 +110,15 @@ router.post('/', function(req, res) {
             return ;
         }
 
-        emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() + '/' + createdUser.confirmToken;
-        transporter.sendMail(emailConfig, function (err) {
-            if (err) {
-                console.error('Emailing error: ' + err);
-                return ;
-            }
-            console.log('Email sent at ' + emailConfig.to);
-        });
+	//TODO::fix mail sending
+        /* emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() + '/' + createdUser.confirmToken;
+	 * transporter.sendMail(emailConfig, function (err) {
+	 *     if (err) {
+	 *         console.error('Emailing error: ' + err);
+	 *         return ;
+	 *     }
+	 *     console.log('Email sent at ' + emailConfig.to);
+	 * });*/
 
         var token = jwt.sign(createdUser._id, tokenSecret, {
             expiresIn: "31d" // expires in 30days hours
@@ -136,31 +137,42 @@ router.post('/', function(req, res) {
 /**
  * Route Activate/Confirm User
  */
-router.get('/confirm/:id/:confirmToken', function(req, res) {
+router.get('/confirm/:id/token/:confirmToken', function(req, res) {
+    var causes = [];
+    
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-            res.status(500).json({status: "fail"});
+	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-            res.status(404).json({status: "fail", data: 'user not found'});
+	    causes.push('user not found');
+	    res.status(httpCodes.notFound).jsend.fail({message: 'Confirmation failed', causes: causes});
             return ;
         }
         if (req.params.confirmToken !== user.confirmToken) {
-            res.status(404).json({status: "fail", data: 'invalid confirmation token'});
+	    causes.push('invalid confirmation token');
+	    res.status(httpCodes.unauthorized).jsend.fail({message: 'Confirmation failed', causes: causes});
             return ;
         }
-        if (user.status !== 'Not activated') {
-            res.json({status: "success", data: {user: user._id.toString(), message: 'User already activated'}});
+        if (user.status !== 'not-activated') {
+	    causes.push('User already activated');
+	    res.status(httpCodes.unauthorized).jsend.fail({message: 'Confirmation failed', causes: causes});
             return ;
         }
 
         user.update({status: 'Activated'}, function (err) {
             if (err) {
-                res.status(500).json({status: "fail", data: {message: 'internal error'}});
+		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
-            res.json({status: "success", data: {user: user._id.toString(), message: 'User activated'}});
+	    var response = {
+		user: {
+		    _id: user._id.toString()
+		    }
+	    };
+	    
+	    res.jsend.success(response);
         });
     });
 });
@@ -182,7 +194,7 @@ router.post('/login', function(req, res) {
 
     mongoose.model('User').findOne({email: res.req.body.email}, function (err, user) {
         if (err) {
-            res.status(err.statusCode).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
@@ -190,26 +202,25 @@ router.post('/login', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'User login failed', causes: causes});
             return ;
         }
-        if (bcrypt.compareSync(res.req.body.password, user.password)) {
-            var token = jwt.sign(user._id, tokenSecret, {
-                expiresIn: "31d" // expires in 30days hours
-            });
-            var response = {
-                token: token,
-                user: {
-                    _id: user._id.toString(),
-                    firstname: user.firstname,
-                    lastname: user.lastname
-                }
-            };
-
-            res.status(httpCodes.OK).jsend.success(response);
-
-        } else {
-            causes.push('Incorrect password');
+	if (!bcrypt.compareSync(res.req.body.password, user.password)) {
+	    causes.push('Incorrect password');
             res.status(httpCodes.unauthorized).jsend.fail({message: 'User login failed', causes: causes});
-        }
+	    return ;
+	}
 
+        var token = jwt.sign(user._id, tokenSecret, {
+            expiresIn: "31d" // expires in 30days hours
+        });
+        var response = {
+            token: token,
+            user: {
+                _id: user._id.toString(),
+                firstname: user.firstname,
+                lastname: user.lastname
+            }
+        };
+
+        res.jsend.success(response);
     });
 });
 
@@ -251,11 +262,11 @@ router.put('/:id/logout', function(req, res) {
 router.get('/', function(req, res) {
     mongoose.model('User').find({}, function (err, users) {
         if (err) {
-	    res.status(500).jsend.error({message: err});
+	    res.status(err.statusCode).jsend.error({message: err.message});
 	    return ;
         }
-	res.status(200).jsend.success(users);
-    });
+	res.jsend.success(users);
+    }).select('-password -__v');
 });
 // [end] Unprotected routes
 
@@ -311,15 +322,17 @@ router.use(function(req, res, next) {
 router.get('/:id', function(req, res) {
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-            res.status(500).json({status: "fail"});
+	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-            res.status(404).json({status: "fail", data: 'user not found'});
+	    causes.push('user not found');
+	    res.status(httpCodes.notFound).jsend.fail({message: 'Get user failed', causes: causes});
             return ;
         }
-        res.json({status: "success", data: user});
-    });
+
+	res.jsend.success(user);
+    }).select('-password -__v');
 });
 
 /**

@@ -21,7 +21,7 @@ var userSchema = new mongoose.Schema({
     updatedAt: {type: Date, default: Date.now},
     confirmToken: String,
     waiterCurrentEvent: {type: String, default: null},
-    status: {type: String, enum: ['Not activated', 'Activated', 'Banned']},
+    status: {type: String, enum: ['not-activated', 'activated', 'banned']},
     currentEvent: {type: mongoose.Schema.Types.ObjectId, ref: 'Event'}
 });
 
