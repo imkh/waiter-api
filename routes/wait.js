@@ -92,21 +92,21 @@ router.get('/', function(req, res) {
 });
 
 //middleware start
-router.use(function(req, res, next) {
-    var token = req.body.token || req.query.token || req.headers['x-access-token'];
-    if (token) {
-        jwt.verify(token, tokenSecret, function(err, decoded) {
-            if (err) {
-                return res.json({status: "fail", data: {message: 'Failed to authenticate token.'}});
-            } else {
-                req.decoded = decoded;
-                next();
-            }
-        });
-    } else {
-        return res.status(403).send({status: "fail", data: {message: 'No token provided.'}});
-    }
-});
+/* router.use(function(req, res, next) {
+ *     var token = req.body.token || req.query.token || req.headers['x-access-token'];
+ *     if (token) {
+ * 	jwt.verify(token, tokenSecret, function(err, decoded) {
+ *             if (err) {
+ * 		return res.json({status: "fail", data: {message: 'Failed to authenticate token.'}});
+ *             } else {
+ * 		req.decoded = decoded;
+ * 		next();
+ *             }
+ * 	});
+ *     } else {
+ * 	return res.status(403).send({status: "fail", data: {message: 'No token provided.'}});
+ *     }
+ * });*/
 //middleware end
 
 
@@ -144,14 +144,17 @@ router.post('/', function(req, res) {
             }
 		
             var newWait = {
-                state: 'not confirmed',
+                state: 'created',
                 clientId: userId,
 		eventId: eventId,
+		nresponses: [],
                 waitersIds: []
             };
+	    
+	    for (var i = 0; i != numberOfWaiters; i++) {
+		newWait.waitersIds.push(event.listOfWaiters.shift());
+	    }
 		
-            newWait.waitersIds.push(event.listOfWaiters[0]);
-            event.listOfWaiters.remove(event.listOfWaiters[0]);
 
             mongoose.model('Wait').create(newWait, function(err, wait) {
                 if (err) {
@@ -162,6 +165,7 @@ router.post('/', function(req, res) {
 		    res.status(500).jsend.fail({message: 'fail wait creation', causes: causes});
 		    return ;
                 }
+		// TODO:: Get waiters to know that there are part of a wait
                 event.save(function(err) {
                     if (err) {
 			res.status(500).jsend.fail('internal server error');
@@ -175,150 +179,187 @@ router.post('/', function(req, res) {
     });
 });
 
-router.get('/not-confirmed/:waiterId/waiter', function(req, res) {
-    var waiterId = req.params.waiterId;
+/* router.get('/not-confirmed/:waiterId/waiter', function(req, res) {
+ *     var waiterId = req.params.waiterId;
+ * 
+ *     mongoose.model('Wait').findOne({state: 'not_confirmed', waitersIds: waiterId}, function(err, wait) {
+ *         if (err) {
+ *             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+ *         } else if (wait === null) {
+ *             res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+ *         } else {
+ *             res.status(200).json({status: 'success', data: wait});
+ *         }
+ *     });
+ * });
+ * 
+ * router.get('/not-confirmed/:clientId/client', function(req, res) {
+ *     var clientId = req.params.clientId;
+ * 
+ *     mongoose.model('Wait').findOne({state: 'not confirmed', clientId: clientId}, function(err, wait) {
+ *         if (err) {
+ *             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+ *         } else if (wait === null) {
+ *             res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+ *         } else {
+ *             res.status(200).json({status: 'success', data: wait});
+ *         }
+ *     });
+ * });*/
 
-    mongoose.model('Wait').findOne({state: 'not confirmed', waitersIds: waiterId}, function(err, wait) {
-        if (err) {
-            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-        } else if (wait === null) {
-            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-        } else {
-            res.status(200).json({status: 'success', data: wait});
-        }
-    });
-});
+/* router.put('/:id/accept', function(req, res) {
+ *     mongoose.model('Wait').findById(req.id, function(err, wait) {
+ *         if (err) {
+ *             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+ * 	    return ;
+ *         }
+ * 	if (wait === null) {
+ *             res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+ * 	    return ;
+ *         }
+ * 	wait.nresponses++;
+ * 	if (wait.nresponses == wait.waitersIds.length) {
+ *             wait.state = 'accepted';
+ * 	}
+ *         wait.save(function (err) {
+ *             if (err) {
+ *                 res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+ * 		return ;
+ *             }
+ * 
+ *             res.status(200).json({status: 'success', data: wait});
+ *         });
+ * 
+ *     });
+ * });*/
 
-router.get('/not-confirmed/:clientId/client', function(req, res) {
-    var clientId = req.params.clientId;
+/* router.put('/:id/reject', function(req, res) {
+ *     mongoose.model('Wait').findById(req.id, function(err, wait) {
+ *         if (err) {
+ *             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+ *         } else if (wait === null) {
+ *             res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+ *         } else {
+ *             wait.state = 'rejected';
+ *             wait.save(function (err) {
+ *                 if (err) {
+ *                     res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+ *                 } else {
+ *                     mongoose.model('User').findById(wait.waitersIds[0], function (err, waiter) {
+ *                         if (err) {
+ *                             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+ *                         } else if (waiter === null) {
+ *                             res.status(404).json({status: 'fail', data: {message: 'waiter not found'}});
+ *                         } else {
+ *                             waiter.currentEvent = 'null';
+ *                             waiter.save(function (err) {
+ *                                 if (err) {
+ *                                     res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+ *                                 } else {
+ *                                     res.status(200).json({status: 'success', data: wait});
+ *                                 }
+ *                             });
+ *                         }
+ *                     });
+ *                 }
+ *             });
+ *         }
+ *     });
+ * });*/
 
-    mongoose.model('Wait').findOne({state: 'not confirmed', clientId: clientId}, function(err, wait) {
-        if (err) {
-            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-        } else if (wait === null) {
-            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-        } else {
-            res.status(200).json({status: 'success', data: wait});
-        }
-    });
-});
-
-router.put('/:id/accept', function(req, res) {
-    mongoose.model('Wait').findById(req.id, function(err, wait) {
-        if (err) {
-            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-        } else if (wait === null) {
-            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-        } else {
-            wait.state = 'accepted';
-            wait.save(function (err) {
-                if (err) {
-                    res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-                } else {
-                    res.status(200).json({status: 'success', data: wait});
-                }
-            });
-        }
-    });
-});
-
-router.put('/:id/reject', function(req, res) {
-    mongoose.model('Wait').findById(req.id, function(err, wait) {
-        if (err) {
-            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-        } else if (wait === null) {
-            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-        } else {
-            wait.state = 'rejected';
-            wait.save(function (err) {
-                if (err) {
-                    res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-                } else {
-                    mongoose.model('User').findById(wait.waitersIds[0], function (err, waiter) {
-                        if (err) {
-                            res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-                        } else if (waiter === null) {
-                            res.status(404).json({status: 'fail', data: {message: 'waiter not found'}});
-                        } else {
-                            waiter.currentEvent = 'null';
-                            waiter.save(function (err) {
-                                if (err) {
-                                    res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-                                } else {
-                                    res.status(200).json({status: 'success', data: wait});
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
-    });
-});
-
-router.put('/:id/do-wait', function(req, res) {
+router.put('/:id/queue-start', function(req, res) {
     var waiterId = res.req.body.waiterId;
 
-    mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'accepted'}, function(err, wait) {
+    mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'created'}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-        } else if (wait === null) {
-            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-        } else {
-            wait.state = 'queuing';
-            wait.save(function (err) {
-                if (err) {
-                    res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-                } else {
-                    res.status(200).json({status: 'success', data: wait});
-                }
-            });
+	    return ;
         }
+	if (wait === null) {
+            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+	    return ;
+        }
+
+
+	// TODO:: check state
+	
+	wait.nresponses.push(waiterId);
+	if (wait.nresponses.length == wait.waitersIds.length) {
+	    wait.nresponses = [];
+	    wait.state = 'queue-start';
+	}
+
+        wait.save(function (err) {
+            if (err) {
+                res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+		return ;
+            }
+	    // TODO:: send notifications
+            res.status(200).json({status: 'success', data: wait});
+        });
+
     });
 });
 
-router.put('/:id/wait-finished', function(req, res) {
+router.put('/:id/queue-done', function(req, res) {
     var waiterId = res.req.body.waiterId;
 
-    mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'queuing'}, function(err, wait) {
+    mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'queue-start'}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-        } else if (wait === null) {
-            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-        } else {
-            wait.state = 'queue done';
-            wait.save(function (err) {
-                if (err) {
-                    res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-                } else {
-                    res.status(200).json({status: 'success', data: wait});
-                }
-            });
+	    return ;
         }
+	if (wait === null) {
+            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+	    return ;
+        }
+
+	// TODO:: check state
+
+	wait.nresponses.push(waiterId);
+	if (wait.nresponses.length == wait.waitersIds.length) {
+	    wait.nresponses = [];
+	    wait.state = 'queue-done';
+	}
+	
+        wait.save(function (err) {
+            if (err) {
+                res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+		return ;
+            }
+
+	    // TODO:: send notifications
+            res.status(200).json({status: 'success', data: wait});
+        });
+	
     });
 });
+
 
 router.put('/:id/generate-code', function(req, res) {
     var clientId = res.req.body.clientId;
 
-    mongoose.model('Wait').findOne({_id: req.id, clientId: clientId, state: 'queue done', confirmationCode: null}, function(err, wait) {
+    mongoose.model('Wait').findOne({_id: req.id, clientId: clientId, state: 'queue-done', confirmationCode: null}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-        } else if (wait === null) {
-            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-        } else {
-            var code = makeid();
-            var salt = bcrypt.genSaltSync(saltRounds);
-
-            wait.confirmationCode = bcrypt.hashSync(code, salt);
-            wait.save(function (err) {
-                if (err) {
-                    res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-                } else {
-                    res.status(200).json({status: 'success', data: {code: code}});
-                }
-            });
+	    return ;
         }
+	if (wait === null) {
+            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+	    return ;
+        }
+
+        var code = makeid();
+        var salt = bcrypt.genSaltSync(saltRounds);
+
+        wait.confirmationCode = bcrypt.hashSync(code, salt);
+        wait.save(function (err) {
+            if (err) {
+                res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+		return ;
+            } 
+            res.status(200).json({status: 'success', data: {code: code}});
+        });
     });
 });
 
@@ -329,22 +370,33 @@ router.put('/:id/validate', function(req, res) {
     mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'queue done', confirmationCode: { $ne: null }}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-        } else if (wait === null) {
-            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-        } else {
-            if (bcrypt.compareSync(code, wait.confirmationCode)) {
-                wait.state = 'payed';
-                wait.save(function (err) {
-                    if (err) {
-                        res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-                    } else {
-                        res.status(200).json({status: 'success', data: wait});
-                    }
-                });
-            } else {
-                res.status(500).json({status: 'fail', data: {message: 'invalid token'}});
-            }
+	    return ;
         }
+	if (wait === null) {
+            res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
+	    return ;
+        }
+        if (!bcrypt.compareSync(code, wait.confirmationCode)) {
+            res.status(500).json({status: 'fail', data: {message: 'invalid token'}});
+	    return ;
+        }
+
+	wait.nresponses.push(waiterId);
+	if (wait.nresponses.length == wait.waitersIds.length) {
+	    wait.nresponses = [];
+	    wait.state = 'payed';
+	}
+	
+
+	// TODO:: cmake transaction
+	
+        wait.save(function (err) {
+            if (err) {
+                res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
+		return ;
+            }
+            res.status(200).json({status: 'success', data: wait});
+        });
     });
 });
 
