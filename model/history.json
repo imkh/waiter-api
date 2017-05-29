@@ -1,0 +1,35 @@
+{
+  wait: {
+    "duration": "",
+    "price": ""
+  }
+  
+  event: {
+    "name": "",
+    "address": "",
+    "lat": "",
+    "long": "",
+    "date": ""
+  }
+  
+  client: {
+    "id": "",
+    "firstname": "",
+    "lastname": "",
+    "createdAt": "",
+    "updatedAt": ""
+  }
+
+  waiters: [
+    {
+      "id": "",
+      "firstname": "",
+      "lastname": "",
+      "createdAt": "",
+      "updatedAt": ""
+    }
+    {
+      ...
+    }
+  ]
+}
