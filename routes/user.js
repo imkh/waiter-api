@@ -74,7 +74,7 @@ router.get('/available/:email', function(req, res) {
 /**
  * Route Register/Signup/Sign up
  */
-router.post('/', function(req, res) {
+router.post('/register', function(req, res) {
     var salt = bcrypt.genSaltSync(saltRounds);
     var causes = [];
 
