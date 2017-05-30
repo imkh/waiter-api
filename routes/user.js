@@ -341,7 +341,9 @@ router.use(function(req, res, next) {
  * Route Get One User By ID
  */
 router.get('/:id', function(req, res) {
-    mongoose.model('User').findById(req.id, function (err, user) {
+    var causes = [];
+
+    mongoose.model('User').findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -352,7 +354,7 @@ router.get('/:id', function(req, res) {
             return ;
         }
 
-        res.jsend.success(user);
+        res.jsend.success({user: user});
     }).select('-password -__v');
 });
 
