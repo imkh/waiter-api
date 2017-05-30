@@ -273,7 +273,7 @@ router.get('/', function(req, res) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
-        res.jsend.success({users: users});
+        res.jsend.success(users);
     }).select('-password -__v');
 });
 // End: Unprotected routes
