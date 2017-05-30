@@ -38,6 +38,10 @@ router.use(bodyParser.urlencoded({
     extended: true
 }));
 
+/**
+ * Create the confirmation token
+ * @returns {string} the confirmation token
+ */
 function makeid()
 {
     var text = "";
@@ -49,7 +53,7 @@ function makeid()
     return text;
 }
 
-// Unprotected routes start
+// Start: Unprotected routes start
 /**
  * Route check available email
  */
@@ -116,15 +120,15 @@ router.post('/', function(req, res) {
             return ;
         }
 
-	//TODO::fix mail sending
-        /* emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() + '/' + createdUser.confirmToken;
-	 * transporter.sendMail(emailConfig, function (err) {
-	 *     if (err) {
-	 *         console.error('Emailing error: ' + err);
-	 *         return ;
-	 *     }
-	 *     console.log('Email sent at ' + emailConfig.to);
-	 * });*/
+        //TODO::fix mail sending
+        // emailConfig.text = 'http://127.0.0.1:5000/user/confirm/' + createdUser._id.toString() + '/' + createdUser.confirmToken;
+        // transporter.sendMail(emailConfig, function (err) {
+        //     if (err) {
+        //         console.error('Emailing error: ' + err);
+        //         return ;
+        //     }
+        //     console.log('Email sent at ' + emailConfig.to);
+        // });
 
         var token = jwt.sign(createdUser._id, tokenSecret, {
             expiresIn: "31d" // expires in 30days hours
@@ -145,40 +149,40 @@ router.post('/', function(req, res) {
  */
 router.get('/confirm/:id/token/:confirmToken', function(req, res) {
     var causes = [];
-    
+
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-	    causes.push('User not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Confirmation failed', causes: causes});
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Confirmation failed', causes: causes});
             return ;
         }
         if (req.params.confirmToken !== user.confirmToken) {
-	    causes.push('Invalid confirmation token');
-	    res.status(httpCodes.unauthorized).jsend.fail({message: 'Confirmation failed', causes: causes});
+            causes.push('Invalid confirmation token');
+            res.status(httpCodes.unauthorized).jsend.fail({message: 'Confirmation failed', causes: causes});
             return ;
         }
         if (user.status !== 'not-activated') {
-	    causes.push('User already activated');
-	    res.status(httpCodes.unauthorized).jsend.fail({message: 'Confirmation failed', causes: causes});
+            causes.push('User already activated');
+            res.status(httpCodes.unauthorized).jsend.fail({message: 'Confirmation failed', causes: causes});
             return ;
         }
 
         user.update({status: 'activated'}, function (err) {
             if (err) {
-		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+                res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
-	    var response = {
-		user: {
-		    _id: user._id.toString()
-		    }
-	    };
-	    
-	    res.jsend.success(response);
+            var response = {
+                user: {
+                    _id: user._id.toString()
+                }
+            };
+
+            res.jsend.success(response);
         });
     });
 });
@@ -208,11 +212,11 @@ router.post('/login', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'User login failed', causes: causes});
             return ;
         }
-	if (!bcrypt.compareSync(res.req.body.password, user.password)) {
-	    causes.push('Incorrect password');
+        if (!bcrypt.compareSync(res.req.body.password, user.password)) {
+            causes.push('Incorrect password');
             res.status(httpCodes.unauthorized).jsend.fail({message: 'User login failed', causes: causes});
-	    return ;
-	}
+            return ;
+        }
 
         var token = jwt.sign(user._id, tokenSecret, {
             expiresIn: "31d" // expires in 30days hours
@@ -265,48 +269,48 @@ router.put('/:id/logout', function(req, res) {
 router.get('/', function(req, res) {
     mongoose.model('User').find({}, function (err, users) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
-	    return ;
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            return ;
         }
-	res.jsend.success(users);
+        res.jsend.success(users);
     }).select('-password -__v');
 });
-// [end] Unprotected routes
+// End: Unprotected routes
 
 
-// [start] Middleware
+// Start: Middleware
 /**
- * ??
+ * Middleware verify user if
  */
 router.param('id', function(req, res, next, id) {
     var causes = [];
-    
+
     mongoose.model('User').findById(id, function (err, user) {
-	if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
-	    return ;
-	}
+        if (err) {
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            return ;
+        }
         if (user === null) {
             causes.push('User not found');
             res.status(httpCodes.notFound).jsend.fail({message: 'User middleware failed', causes: causes});
             return ;
         }
         next();
-	
-	/* if (err) {
-	 *     console.log(id + ' was not found');
-	 *     res.status(404);
-	 *     var err = new Error('Not Found');
-	 *     err.status = 404;
-	 *     res.format({
-	 *         json: function(){
-	 *             res.status(404).json({status: "fail", data : { message: err.status  + ' ' + err}});
-	 *         }
-	 *     });
-	 * } else {
-	 *     req.id = id;
-	 *     next();
-	 * }*/
+
+        // if (err) {
+        //     console.log(id + ' was not found');
+        //     res.status(404);
+        //     var err = new Error('Not Found');
+        //     err.status = 404;
+        //     res.format({
+        //         json: function(){
+        //             res.status(404).json({status: "fail", data : { message: err.status  + ' ' + err}});
+        //         }
+        //     });
+        // } else {
+        //     req.id = id;
+        //     next();
+        // }
     });
 });
 
@@ -328,26 +332,26 @@ router.use(function(req, res, next) {
         next();
     });
 });
-// [end] Middleware
+// End: Middleware
 
 
-// [start] Protected routes by token system
+// Start: Protected routes by token system
 /**
  * Route Get One User By ID
  */
 router.get('/:id', function(req, res) {
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-	    causes.push('User not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Get user failed', causes: causes});
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get user failed', causes: causes});
             return ;
         }
 
-	res.jsend.success(user);
+        res.jsend.success(user);
     }).select('-password -__v');
 });
 
@@ -357,10 +361,10 @@ router.get('/:id', function(req, res) {
 router.put('/:id/password', function(req, res) {
     var causes = [];
 
-    
+
     if (!res.req.body.newPassword) {
-	causes.push('Missing new password');
-	res.status(httpCodes.badRequest).jsend.fail({message: 'Update password failed', causes: causes});
+        causes.push('Missing new password');
+        res.status(httpCodes.badRequest).jsend.fail({message: 'Update password failed', causes: causes});
         return ;
     }
 
@@ -369,35 +373,35 @@ router.put('/:id/password', function(req, res) {
 
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-	    res.status(httpCodes.badRequest).jsend.error({message: err.message});
+            res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-	    causes.push('User not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Update password failed', causes: causes});
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Update password failed', causes: causes});
             return ;
         }
         if (!res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
-	    causes.push('Wrong password');
-	    res.status(httpCodes.badRequest).jsend.fail({message: 'Update password failed', causes: causes});
-	    return ;
-	}
+            causes.push('Wrong password');
+            res.status(httpCodes.badRequest).jsend.fail({message: 'Update password failed', causes: causes});
+            return ;
+        }
 
         user.update({
             password: newPassword
         }, function (err) {
             if (err) {
-		res.status(httpCodes.badRequest).jsend.error({message: err.message});
-		return ;
+                res.status(httpCodes.badRequest).jsend.error({message: err.message});
+                return ;
             }
 
-	    var response = {
-		user: {
-		    _id: user._id.toString()
-		    }
-	    };
-	    
-	    res.jsend.success(response);
+            var response = {
+                user: {
+                    _id: user._id.toString()
+                }
+            };
+
+            res.jsend.success(response);
         });
     });
 });
@@ -416,12 +420,12 @@ router.put('/:id/profile', function(req, res) {
 
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-	    res.status(httpCodes.badRequest).jsend.error({message: err.message});
+            res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-	    causes.push('User not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
             return ;
         }
 
@@ -434,7 +438,7 @@ router.put('/:id/profile', function(req, res) {
                         causes.push(err.errors.firstname.message);
                     if (err.errors.email)
                         causes.push(err.errors.email.message);
-		    res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
+                    res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
                     return ;
                 }
                 res.jsend.success();
@@ -447,27 +451,27 @@ router.put('/:id/profile', function(req, res) {
  */
 router.delete('/:id', function(req, res) {
     var causes = [];
-    
+
     mongoose.model('User').findById(req.id, function (err, user) {
         if (err) {
-	    res.status(httpCodes.badRequest).jsend.error({message: err.message});
+            res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-	    causes.push('User not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
             return ;
         }
 
         user.remove(function (err) {
             if (err) {
-		res.status(httpCodes.badRequest).jsend.error({message: err.message});
+                res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;
             }
             res.jsend.success();
         });
     });
 });
-// [end] Protected routes by token system
+// End: Protected routes by token system
 
 module.exports = router;
