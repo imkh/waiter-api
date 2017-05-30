@@ -53,7 +53,7 @@ function makeid()
     return text;
 }
 
-// Start: Unprotected routes start
+// Start: Unprotected routes
 /**
  * Route check available email
  */
@@ -137,7 +137,8 @@ router.post('/', function(req, res) {
         var response = {
             token: token,
             user: {
-                _id: createdUser._id.toString()
+                _id: createdUser._id.toString(),
+                confirmToken: createdUser.confirmToken
             }
         };
         res.status(httpCodes.created).jsend.success(response);
@@ -150,7 +151,7 @@ router.post('/', function(req, res) {
 router.get('/confirm/:id/token/:confirmToken', function(req, res) {
     var causes = [];
 
-    mongoose.model('User').findById(req.id, function (err, user) {
+    mongoose.model('User').findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -167,7 +168,7 @@ router.get('/confirm/:id/token/:confirmToken', function(req, res) {
         }
         if (user.status !== 'not-activated') {
             causes.push('User already activated');
-            res.status(httpCodes.unauthorized).jsend.fail({message: 'Confirmation failed', causes: causes});
+            res.status(httpCodes.conflict).jsend.fail({message: 'Confirmation failed', causes: causes});
             return ;
         }
 
