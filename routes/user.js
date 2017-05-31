@@ -471,17 +471,23 @@ router.put('/:id/profile', function(req, res) {
 /**
  * Route Delete User By ID
  */
-router.delete('/:id', function(req, res) {
+router.delete('/:id/delete', function(req, res) {
     var causes = [];
 
-    mongoose.model('User').findById(req.id, function (err, user) {
+    mongoose.model('User').findById(req.params.id, function (err, user) {
         if (err) {
-            res.status(httpCodes.badRequest).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
             causes.push('User not found');
-            res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
+            res.status(httpCodes.notFound).jsend.fail({message: 'Delete user failed', causes: causes});
+            return ;
+        }
+        var password = res.req.body.password;
+        if (!password || !bcrypt.compareSync(password, user.password)) {
+            causes.push('Incorrect password');
+            res.status(httpCodes.unauthorized).jsend.fail({message: 'Delete user failed', causes: causes});
             return ;
         }
 
@@ -490,7 +496,9 @@ router.delete('/:id', function(req, res) {
                 res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;
             }
-            res.jsend.success();
+
+            var response = {};
+            res.jsend.success(response);
         });
     });
 });
