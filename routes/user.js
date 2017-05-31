@@ -416,20 +416,31 @@ router.put('/:id/password', function(req, res) {
 router.put('/:id/profile', function(req, res) {
     var causes = [];
 
-    var userChange = {
-        firstname: res.req.body.firstname,
-        lastname: res.req.body.lastname,
-        email: res.req.body.email
-    };
+    var userChange = {};
+    if (res.req.body.firstname) {
+        userChange.firstname = res.req.body.firstname;
+    }
+    if (res.req.body.lastname) {
+        userChange.lastname = res.req.body.lastname;
+    }
+    if (res.req.body.email) {
+        userChange.email = res.req.body.email;
+    }
 
-    mongoose.model('User').findById(req.id, function (err, user) {
+    mongoose.model('User').findById(req.params.id, function (err, user) {
         if (err) {
-            res.status(httpCodes.badRequest).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
             causes.push('User not found');
             res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
+            return ;
+        }
+        var password = res.req.body.password;
+        if (!password || !bcrypt.compareSync(password, user.password)) {
+            causes.push('Incorrect password');
+            res.status(httpCodes.unauthorized).jsend.fail({message: 'Update password failed', causes: causes});
             return ;
         }
 
@@ -442,10 +453,17 @@ router.put('/:id/profile', function(req, res) {
                         causes.push(err.errors.firstname.message);
                     if (err.errors.email)
                         causes.push(err.errors.email.message);
-                    res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
+                    res.status(httpCodes.badRequest).jsend.fail({message: 'Update profile failed', causes: causes});
                     return ;
                 }
-                res.jsend.success();
+
+                var response = {
+                    user: {
+                        _id: user._id.toString()
+                    }
+                };
+
+                res.jsend.success(response);
             });
     });
 });
