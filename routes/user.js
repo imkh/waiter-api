@@ -364,9 +364,8 @@ router.get('/:id', function(req, res) {
 router.put('/:id/password', function(req, res) {
     var causes = [];
 
-
     if (!res.req.body.newPassword) {
-        causes.push('Missing new password');
+        causes.push('A new password is required');
         res.status(httpCodes.badRequest).jsend.fail({message: 'Update password failed', causes: causes});
         return ;
     }
@@ -374,7 +373,7 @@ router.put('/:id/password', function(req, res) {
     var salt = bcrypt.genSaltSync(saltRounds);
     var newPassword = bcrypt.hashSync(res.req.body.newPassword, salt);
 
-    mongoose.model('User').findById(req.id, function (err, user) {
+    mongoose.model('User').findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
@@ -384,9 +383,11 @@ router.put('/:id/password', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Update password failed', causes: causes});
             return ;
         }
-        if (!res.req.body.password && bcrypt.compareSync(res.req.body.password, user.password)) {
-            causes.push('Wrong password');
-            res.status(httpCodes.badRequest).jsend.fail({message: 'Update password failed', causes: causes});
+
+        var password = res.req.body.password;
+        if (!password || !bcrypt.compareSync(password, user.password)) {
+            causes.push('Incorrect password');
+            res.status(httpCodes.unauthorized).jsend.fail({message: 'Update password failed', causes: causes});
             return ;
         }
 
