@@ -19,6 +19,7 @@ chai.use(chaiHttp);
 
 var userId;
 var userToken;
+var userConfirmToken;
 var userFirstName;
 var userLastName;
 var userEmail;
@@ -33,20 +34,22 @@ describe('User', function(){
         });
     });
 
-    // describe('/GET users', function(){
-    //     it('it should GET all the users', function(done){
-    //         chai.request(app)
-    //             .get('/user')
-    //             .end(function(err, res)  {
-    //                 expect(res).to.have.status(200);
-    //                 expect(res.body).to.have.property('status')
-    //                     .and.to.equal('success');
-    //                 expect(res.body).to.have.property('data')
-    //                     .and.to.deep.equal([]);
-    //                 done();
-    //             });
-    //     });
-    // });
+    /**
+     * Test get all users
+     */
+    describe('/GET users', function(){
+        it('it should GET all the users (empty)', function(done){
+            chai.request(app)
+                .get('/user')
+                .end(function(err, res)  {
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('users').and.to.deep.equal([]);
+                    done();
+                });
+        });
+    });
 
     /**
      * Test a successful user registration
@@ -67,15 +70,19 @@ describe('User', function(){
             userPassword = data.password;
 
             chai.request(app)
-                .post('/user')
+                .post('/user/register')
                 .send(data)
                 .end(function(err, res)  {
+                    if (err) {
+                        console.log(err);
+                    }
                     expect(res).to.have.status(201);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('token');
                     expect(res.body.data.user).to.have.property('_id');
                     userId = res.body.data.user._id;
+                    userConfirmToken = res.body.data.user.confirmToken;
                     userToken = res.body.data.token;
                     done();
                 });
@@ -96,7 +103,7 @@ describe('User', function(){
 
         it('it should fail to register (password required)', function(done){
             chai.request(app)
-                .post('/user')
+                .post('/user/register')
                 .send(data)
                 .end(function(err, res)  {
                     expect(res).to.have.status(400);
@@ -112,7 +119,7 @@ describe('User', function(){
         it('it should fail to register (password should be 8 characters at least)', function(done){
             data.password = 'qwerty';
             chai.request(app)
-                .post('/user')
+                .post('/user/register')
                 .send(data)
                 .end(function(err, res)  {
                     expect(res).to.have.status(400);
@@ -128,7 +135,7 @@ describe('User', function(){
         it('it should fail to register (first name, last name and email are required)', function(done){
             data.password = 'qwertyuiop';
             chai.request(app)
-                .post('/user')
+                .post('/user/register')
                 .send(data)
                 .end(function(err, res)  {
                     expect(res).to.have.status(400);
@@ -149,7 +156,7 @@ describe('User', function(){
             data.email = userEmail;
             data.password = userPassword;
             chai.request(app)
-                .post('/user')
+                .post('/user/register')
                 .send(data)
                 .end(function(err, res)  {
                     expect(res).to.have.status(400);
@@ -162,6 +169,69 @@ describe('User', function(){
                 });
         });
 
+    });
+
+    /**
+     * Test get all users
+     */
+    describe('/GET users', function(){
+        it('it should GET all the users (1 user: not activated)', function(done){
+            chai.request(app)
+                .get('/user')
+                .end(function(err, res)  {
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('users').and.to.have.length.of(1);
+                    expect(res.body.data.users[0]).to.have.property('_id').and.to.equal(userId);
+                    expect(res.body.data.users[0]).to.have.property('firstname').and.to.equal(userFirstName);
+                    expect(res.body.data.users[0]).to.have.property('lastname').and.to.equal(userLastName);
+                    expect(res.body.data.users[0]).to.have.property('email').and.to.equal(userEmail);
+                    expect(res.body.data.users[0]).to.have.property('status').and.to.equal('not-activated');
+                    done();
+                });
+        });
+    });
+
+    /**
+     * Test activate user
+     */
+    describe('/GET users', function(){
+        it('it should activate the user account `hello@world.com`', function(done){
+            chai.request(app)
+                .get('/user/confirm/' + userId + '/token/' + userConfirmToken)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('user');
+                    expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
+                    done();
+                });
+        });
+    });
+
+
+    /**
+     * Test get all users
+     */
+    describe('/GET users', function(){
+        it('it should GET all the users (1 user: activated)', function(done){
+            chai.request(app)
+                .get('/user')
+                .end(function(err, res)  {
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('users').and.to.have.length.of(1);
+                    expect(res.body.data.users[0]).to.have.property('_id').and.to.equal(userId);
+                    expect(res.body.data.users[0]).to.have.property('firstname').and.to.equal(userFirstName);
+                    expect(res.body.data.users[0]).to.have.property('lastname').and.to.equal(userLastName);
+                    expect(res.body.data.users[0]).to.have.property('email').and.to.equal(userEmail);
+                    expect(res.body.data.users[0]).to.have.property('status').and.to.equal('activated');
+                    done();
+                });
+        });
     });
 
     /**
@@ -219,6 +289,7 @@ describe('User', function(){
                     expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
                     expect(res.body.data.user).to.have.property('firstname').and.to.equal(userFirstName);
                     expect(res.body.data.user).to.have.property('lastname').and.to.equal(userLastName);
+                    userToken = res.body.data.token;
                     done();
                 });
         });
@@ -284,112 +355,153 @@ describe('User', function(){
         });
     });
 
-    // describe('/LOGIN user', function(){
-    //     it('it should LOGIN a user and get a token', function(done){
-    //         var data = {
-    //             email: 'bomaye@gmail.com',
-    //             password: 'zazaza'
-    //         };
-    //
-    //
-    //         chai.request(app)
-    //             .post('/user/login')
-    //             .send(data)
-    //             .end(function(err, res){
-    //                 expect(res).to.have.status(200);
-    //                 expect(res.body).to.have.property('status')
-    //                     .and.to.equal('success');
-    //                 userToken = res.body.data.token;
-    //                 userId = res.body.data.user;
-    //                 done();
-    //             });
-    //     });
-    // });
-    //
-    // describe('/GET user by ID', function(){
-    //     it('it should GET user by its ID', function(done){
-    //         chai.request(app)
-    //             .get('/user/' + userId)
-    //             .set('x-access-token', userToken)
-    //             .end(function(err, res)  {
-    //                 expect(res).to.have.status(200);
-    //                 expect(res.body).to.have.property('status')
-    //                     .and.to.equal('success');
-    //                 done();
-    //             });
-    //     });
-    // });
-    //
-    // describe('/PUT password', function(){
-    //     this.timeout(5000);
-    //     it('it should change a password with user ID', function(done){
-    //
-    //         var data = {
-    //             password:'zazaza',
-    //             newPassword: 'bobobo'
-    //         };
-    //
-    //         chai.request(app)
-    //             .put('/user/' + userId + "/password")
-    //             .send(data)
-    //             .set('x-access-token', userToken)
-    //             .end(function(err, res)  {
-    //                 expect(res).to.have.status(200);
-    //                 expect(res.body).to.have.property('status')
-    //                     .and.to.equal('success');
-    //                 done();
-    //             });
-    //     });
-    // });
-    //
-    // describe('/PUT profile', function(){
-    //     this.timeout(5000);
-    //     it('it should change profile informations', function(done){
-    //
-    //         var data = {
-    //             firstname: 'Ali',
-    //             lastname: "Bomaye",
-    //             email: 'ali.bomaye@gmail.com'
-    //         };
-    //
-    //         chai.request(app)
-    //             .put('/user/' + userId + "/profile")
-    //             .send(data)
-    //             .set('x-access-token', userToken)
-    //             .end(function(err, res)  {
-    //                 expect(res).to.have.status(200);
-    //                 expect(res.body).to.have.property('status')
-    //                     .and.to.equal('success');
-    //                 done();
-    //             });
-    //     });
-    // });
-    //
-    // describe('/DELETE user', function(){
-    //     it('it should DELETE a user', function(done){
-    //         chai.request(app)
-    //             .delete('/user/' + userId)
-    //             .set('x-access-token', userToken)
-    //             .end(function(err, res){
-    //                 expect(res).to.have.status(200);
-    //                 expect(res.body).to.have.property('status')
-    //                     .and.to.equal('success');
-    //                 done();
-    //             });
-    //     });
-    // });
-    //
-    // describe('/GET fake route', function(){
-    //     it('it should return an error 404', function(done){
-    //         chai.request(app)
-    //             .delete('/user/' + userId)
-    //             .set('x-access-token', userToken)
-    //             .end(function(err, res){
-    //                 expect(res).to.have.status(404);
-    //                 expect(res.body).to.have.property('status')
-    //                     .and.to.equal('fail');
-    //                 done();
-    //             });
-    //     });
-    // });
+    /**
+     * Test get one user by id
+     */
+    describe('/GET user by ID', function(){
+        it('it should GET a user by its ID', function(done){
+            chai.request(app)
+                .get('/user/' + userId)
+                .set('x-access-token', userToken)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('user');
+                    expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
+                    expect(res.body.data.user).to.have.property('firstname').and.to.equal(userFirstName);
+                    expect(res.body.data.user).to.have.property('lastname').and.to.equal(userLastName);
+                    expect(res.body.data.user).to.have.property('email').and.to.equal(userEmail);
+                    expect(res.body.data.user).to.have.property('status').and.to.equal('activated');
+                    done();
+                });
+        });
+    });
+
+    /**
+     * Test update password
+     */
+    describe('/PUT password', function(){
+        this.timeout(5000);
+        it('it should change a password with user ID', function(done){
+
+            var data = {
+                password: userPassword,
+                newPassword: 'qwertyuiop'
+            };
+
+            chai.request(app)
+                .put('/user/' + userId + "/password")
+                .send(data)
+                .set('x-access-token', userToken)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('user');
+                    expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
+                    userPassword = data.newPassword;
+                    done();
+                });
+        });
+    });
+
+    /**
+     * Test update profile
+     */
+    describe('/PUT profile', function(){
+        this.timeout(5000);
+        it('it should change profile information', function(done){
+
+            var data = {
+                firstname: 'John',
+                lastname: "Doe",
+                email: 'john@doe.com',
+                password: userPassword
+            };
+
+            chai.request(app)
+                .put('/user/' + userId + "/profile")
+                .send(data)
+                .set('x-access-token', userToken)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('user');
+                    expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
+                    userFirstName = data.firstname;
+                    userLastName = data.lastname;
+                    userEmail = data.email;
+                    done();
+                });
+        });
+    });
+
+    /**
+     * Test login with new IDs
+     */
+    describe('/LOGIN user', function(){
+        it('it should LOGIN the user with its new IDs', function(done){
+            var data = {
+                email: userEmail,
+                password: userPassword
+            };
+
+            chai.request(app)
+                .post('/user/login')
+                .send(data)
+                .end(function(err, res){
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('token');
+                    expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
+                    expect(res.body.data.user).to.have.property('firstname').and.to.equal(userFirstName);
+                    expect(res.body.data.user).to.have.property('lastname').and.to.equal(userLastName);
+                    userToken = res.body.data.token;
+                    done();
+                });
+        });
+    });
+
+
+    /**
+     * Test delete user
+     */
+    describe('/DELETE user', function(){
+        it('it should DELETE a user', function(done){
+
+            var data = {
+                password: userPassword
+            };
+
+            chai.request(app)
+                .delete('/user/' + userId + '/delete')
+                .send(data)
+                .set('x-access-token', userToken)
+                .end(function(err, res){
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    done();
+                });
+        });
+    });
+
+    /**
+     * Test delete already delete user
+     */
+    describe('/DELETE user', function(){
+        it('it should return an error 404 (user already deleted)', function(done){
+            chai.request(app)
+                .delete('/user/' + userId + '/delete')
+                .set('x-access-token', userToken)
+                .end(function(err, res){
+                    expect(res).to.have.status(404);
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    done();
+                });
+        });
+    });
 });
