@@ -392,7 +392,8 @@ router.put('/:id/password', function(req, res) {
         }
 
         user.update({
-            password: newPassword
+            password: newPassword,
+            updatedAt: Date.now()
         }, function (err) {
             if (err) {
                 res.status(httpCodes.badRequest).jsend.error({message: err.message});
@@ -444,6 +445,7 @@ router.put('/:id/profile', function(req, res) {
             return ;
         }
 
+        userChange.updatedAt = Date.now();
         user.update(userChange, {runValidators: true},
             function (err) {
                 if (err) {
