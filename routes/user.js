@@ -89,8 +89,8 @@ router.post('/register', function(req, res) {
     }
 
     var user = {
-        firstname: res.req.body.firstname,
-        lastname: res.req.body.lastname,
+        firstName: res.req.body.firstName,
+        lastName: res.req.body.lastName,
         email: res.req.body.email,
         password: bcrypt.hashSync(res.req.body.password, salt),
         type: res.req.body.type,
@@ -101,10 +101,10 @@ router.post('/register', function(req, res) {
     mongoose.model('User').create(user, function(err, createdUser) {
         if (err) {
             if (err.errors) {
-                if (err.errors.firstname)
-                    causes.push(err.errors.firstname.message);
-                if (err.errors.lastname)
-                    causes.push(err.errors.lastname.message);
+                if (err.errors.firstName)
+                    causes.push(err.errors.firstName.message);
+                if (err.errors.lastName)
+                    causes.push(err.errors.lastName.message);
                 if (err.errors.email)
                     causes.push(err.errors.email.message);
                 if (err.errors.password)
@@ -226,8 +226,8 @@ router.post('/login', function(req, res) {
             token: token,
             user: {
                 _id: user._id.toString(),
-                firstname: user.firstname,
-                lastname: user.lastname
+                firstName: user.firstName,
+                lastName: user.lastName
             }
         };
 
@@ -418,11 +418,11 @@ router.put('/:id/profile', function(req, res) {
     var causes = [];
 
     var userChange = {};
-    if (res.req.body.firstname) {
-        userChange.firstname = res.req.body.firstname;
+    if (res.req.body.firstName) {
+        userChange.firstName = res.req.body.firstName;
     }
-    if (res.req.body.lastname) {
-        userChange.lastname = res.req.body.lastname;
+    if (res.req.body.lastName) {
+        userChange.lastName = res.req.body.lastName;
     }
     if (res.req.body.email) {
         userChange.email = res.req.body.email;
@@ -449,10 +449,10 @@ router.put('/:id/profile', function(req, res) {
         user.update(userChange, {runValidators: true},
             function (err) {
                 if (err) {
-                    if (err.errors.lastname)
-                        causes.push(err.errors.lastname.message);
-                    if (err.errors.firstname)
-                        causes.push(err.errors.firstname.message);
+                    if (err.errors.lastName)
+                        causes.push(err.errors.lastName.message);
+                    if (err.errors.firstName)
+                        causes.push(err.errors.firstName.message);
                     if (err.errors.email)
                         causes.push(err.errors.email.message);
                     res.status(httpCodes.badRequest).jsend.fail({message: 'Update profile failed', causes: causes});

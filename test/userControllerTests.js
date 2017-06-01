@@ -57,15 +57,15 @@ describe('User', function(){
     describe('/POST user', function(){
         it('it should register the user `hello@world.com` and get an auth token', function(done){
             var data = {
-                firstname: 'Hello',
-                lastname: 'World',
+                firstName: 'Hello',
+                lastName: 'World',
                 email: 'hello@world.com',
                 password: 'helloworld',
                 type: 0
             };
 
-            userFirstName = data.firstname;
-            userLastName = data.lastname;
+            userFirstName = data.firstName;
+            userLastName = data.lastName;
             userEmail = data.email;
             userPassword = data.password;
 
@@ -94,8 +94,8 @@ describe('User', function(){
      */
     describe('/POST user', function(){
         var data = {
-            firstname: '',
-            lastname: '',
+            firstName: '',
+            lastName: '',
             email: '',
             password: '',
             type: 0
@@ -143,16 +143,16 @@ describe('User', function(){
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
                     expect(res.body.data).to.have.property('causes');
-                    expect(res.body.data.causes[0]).to.equal('Path `firstname` is required.');
-                    expect(res.body.data.causes[1]).to.equal('Path `lastname` is required.');
+                    expect(res.body.data.causes[0]).to.equal('Path `firstName` is required.');
+                    expect(res.body.data.causes[1]).to.equal('Path `lastName` is required.');
                     expect(res.body.data.causes[2]).to.equal('Path `email` is required.');
                     done();
                 });
         });
 
         it('it should fail to register (email already used)', function(done){
-            data.firstname = userFirstName;
-            data.lastname = userLastName;
+            data.firstName = userFirstName;
+            data.lastName = userLastName;
             data.email = userEmail;
             data.password = userPassword;
             chai.request(app)
@@ -184,8 +184,8 @@ describe('User', function(){
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('users').and.to.have.length.of(1);
                     expect(res.body.data.users[0]).to.have.property('_id').and.to.equal(userId);
-                    expect(res.body.data.users[0]).to.have.property('firstname').and.to.equal(userFirstName);
-                    expect(res.body.data.users[0]).to.have.property('lastname').and.to.equal(userLastName);
+                    expect(res.body.data.users[0]).to.have.property('firstName').and.to.equal(userFirstName);
+                    expect(res.body.data.users[0]).to.have.property('lastName').and.to.equal(userLastName);
                     expect(res.body.data.users[0]).to.have.property('email').and.to.equal(userEmail);
                     expect(res.body.data.users[0]).to.have.property('status').and.to.equal('not-activated');
                     done();
@@ -225,8 +225,8 @@ describe('User', function(){
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('users').and.to.have.length.of(1);
                     expect(res.body.data.users[0]).to.have.property('_id').and.to.equal(userId);
-                    expect(res.body.data.users[0]).to.have.property('firstname').and.to.equal(userFirstName);
-                    expect(res.body.data.users[0]).to.have.property('lastname').and.to.equal(userLastName);
+                    expect(res.body.data.users[0]).to.have.property('firstName').and.to.equal(userFirstName);
+                    expect(res.body.data.users[0]).to.have.property('lastName').and.to.equal(userLastName);
                     expect(res.body.data.users[0]).to.have.property('email').and.to.equal(userEmail);
                     expect(res.body.data.users[0]).to.have.property('status').and.to.equal('activated');
                     done();
@@ -287,8 +287,8 @@ describe('User', function(){
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('token');
                     expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
-                    expect(res.body.data.user).to.have.property('firstname').and.to.equal(userFirstName);
-                    expect(res.body.data.user).to.have.property('lastname').and.to.equal(userLastName);
+                    expect(res.body.data.user).to.have.property('firstName').and.to.equal(userFirstName);
+                    expect(res.body.data.user).to.have.property('lastName').and.to.equal(userLastName);
                     userToken = res.body.data.token;
                     done();
                 });
@@ -369,8 +369,8 @@ describe('User', function(){
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('user');
                     expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
-                    expect(res.body.data.user).to.have.property('firstname').and.to.equal(userFirstName);
-                    expect(res.body.data.user).to.have.property('lastname').and.to.equal(userLastName);
+                    expect(res.body.data.user).to.have.property('firstName').and.to.equal(userFirstName);
+                    expect(res.body.data.user).to.have.property('lastName').and.to.equal(userLastName);
                     expect(res.body.data.user).to.have.property('email').and.to.equal(userEmail);
                     expect(res.body.data.user).to.have.property('status').and.to.equal('activated');
                     done();
@@ -414,8 +414,8 @@ describe('User', function(){
         it('it should change profile information', function(done){
 
             var data = {
-                firstname: 'John',
-                lastname: "Doe",
+                firstName: 'John',
+                lastName: "Doe",
                 email: 'john@doe.com',
                 password: userPassword
             };
@@ -430,8 +430,8 @@ describe('User', function(){
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('user');
                     expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
-                    userFirstName = data.firstname;
-                    userLastName = data.lastname;
+                    userFirstName = data.firstName;
+                    userLastName = data.lastName;
                     userEmail = data.email;
                     done();
                 });
@@ -457,8 +457,8 @@ describe('User', function(){
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('token');
                     expect(res.body.data.user).to.have.property('_id').and.to.equal(userId);
-                    expect(res.body.data.user).to.have.property('firstname').and.to.equal(userFirstName);
-                    expect(res.body.data.user).to.have.property('lastname').and.to.equal(userLastName);
+                    expect(res.body.data.user).to.have.property('firstName').and.to.equal(userFirstName);
+                    expect(res.body.data.user).to.have.property('lastName').and.to.equal(userLastName);
                     userToken = res.body.data.token;
                     done();
                 });
