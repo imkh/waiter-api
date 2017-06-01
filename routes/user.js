@@ -449,12 +449,16 @@ router.put('/:id/profile', function(req, res) {
         user.update(userChange, {runValidators: true},
             function (err) {
                 if (err) {
-                    if (err.errors.lastName)
-                        causes.push(err.errors.lastName.message);
-                    if (err.errors.firstName)
-                        causes.push(err.errors.firstName.message);
-                    if (err.errors.email)
-                        causes.push(err.errors.email.message);
+                    if (err.errors) {
+                        if (err.errors.lastName)
+                            causes.push(err.errors.lastName.message);
+                        if (err.errors.firstName)
+                            causes.push(err.errors.firstName.message);
+                        if (err.errors.email)
+                            causes.push(err.errors.email.message);
+                    } else {
+                        causes.push(err.message);
+                    }
                     res.status(httpCodes.badRequest).jsend.fail({message: 'Update profile failed', causes: causes});
                     return ;
                 }
