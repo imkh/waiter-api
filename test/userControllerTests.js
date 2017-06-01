@@ -465,6 +465,28 @@ describe('User', function(){
         });
     });
 
+    /**
+     * Test logout user
+     */
+    describe('/LOGOUT user', function(){
+        it('it should LOGOUT the user', function(done){
+            var data = {
+                email: userEmail,
+                password: userPassword
+            };
+
+            chai.request(app)
+                .post('/user/login')
+                .send(data)
+                .end(function(err, res){
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.have.property('status').and.to.equal('success');
+                    expect(res.body).to.have.property('data');
+                    done();
+                });
+        });
+    });
+
 
     /**
      * Test delete user
