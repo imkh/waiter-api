@@ -241,7 +241,7 @@ router.post('/login', function(req, res) {
 router.put('/:id/logout', function(req, res) {
     var causes = [];
 
-    mongoose.model('User').findById(req.id, function (err, user) {
+    mongoose.model('User').findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
