@@ -416,8 +416,7 @@ describe('User', function(){
             var data = {
                 firstName: 'John',
                 lastName: "Doe",
-                email: 'john@doe.com',
-                password: userPassword
+                email: 'john@doe.com'
             };
 
             chai.request(app)

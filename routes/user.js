@@ -438,12 +438,6 @@ router.put('/:id/profile', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Update profile failed', causes: causes});
             return ;
         }
-        var password = res.req.body.password;
-        if (!password || !bcrypt.compareSync(password, user.password)) {
-            causes.push('Incorrect password');
-            res.status(httpCodes.unauthorized).jsend.fail({message: 'Update password failed', causes: causes});
-            return ;
-        }
 
         userChange.updatedAt = Date.now();
         user.update(userChange, {runValidators: true},
