@@ -149,7 +149,7 @@ router.get('/', function(req, res) {
 /**
  * Route Delete Event
  */
-router.delete('/:id', function(req, res) {
+router.delete('/:id/delete', function(req, res) {
     var causes = [];
 
     mongoose.model('Event').findById(req.params.id, function (err, event) {
