@@ -105,7 +105,11 @@ router.post('/', function(req, res) {
             res.status(httpCodes.badRequest).jsend.fail({message: 'Create event failed', causes: causes});
             return ;
         }
-        res.jsend.success(createdEvent);
+
+        var response = {
+            event: createdEvent
+        };
+        res.jsend.success(response);
     });
 });
 
@@ -125,8 +129,8 @@ router.get('/:id', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Get event failed', causes: causes});
             return ;
         }
-        res.jsend.success(event);
-    });
+        res.jsend.success({event: event});
+    }).select('-listOfWaiters -__v');
 });
 
 /**
@@ -138,7 +142,7 @@ router.get('/', function(req, res) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
-        res.jsend.success(events);
+        res.jsend.success({events: events});
     });
 });
 
