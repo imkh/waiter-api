@@ -109,7 +109,7 @@ router.post('/', function(req, res) {
         var response = {
             event: createdEvent
         };
-        res.jsend.success(response);
+        res.status(httpCodes.created).jsend.success(response);
     });
 });
 
