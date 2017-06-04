@@ -114,7 +114,7 @@ router.post('/', function(req, res) {
 router.get('/:id', function(req, res) {
     var causes = [];
 
-    mongoose.model('Event').findById(req.id, function (err, event) {
+    mongoose.model('Event').findById(req.params.id, function (err, event) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -147,7 +147,7 @@ router.get('/', function(req, res) {
 router.delete('/:id', function(req, res) {
     var causes = [];
 
-    mongoose.model('Event').findById(req.id, function (err, event) {
+    mongoose.model('Event').findById(req.params.id, function (err, event) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
@@ -206,7 +206,7 @@ router.put('/:id/join', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Join event failed', causes: causes});
             return ;
         }
-        mongoose.model('Event').findById(req.id, function (err, event) {
+        mongoose.model('Event').findById(req.params.id, function (err, event) {
             if (err) {
                 res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;
@@ -260,7 +260,7 @@ router.put('/:id/leave', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Leave event failed', causes: causes});
             return ;
         }
-        mongoose.model('Event').findById(req.id, function (err, event) {
+        mongoose.model('Event').findById(req.params.id, function (err, event) {
             if (err) {
                 res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;
@@ -278,8 +278,8 @@ router.put('/:id/leave', function(req, res) {
                 return ;
             }
 
-            if (user.waiterCurrentEvent !== req.id) {
-                causes.push("waiter hasn't subscribed to this event");
+            if (user.waiterCurrentEvent !== req.params.id) {
+                causes.push("waiter hasn't subscribedd to this event");
                 res.status(httpCodes.conflict).jsend.fail({message: 'Leave event failed', causes: causes});
                 return ;
             }
