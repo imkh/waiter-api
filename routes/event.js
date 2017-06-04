@@ -76,7 +76,7 @@ router.param('id', function(req, res, next, id) {
 /**
  * Route Create Event
  */
-router.post('/', function(req, res) {
+router.post('/create', function(req, res) {
     var causes = [];
 
     var event = {
