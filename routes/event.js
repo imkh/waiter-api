@@ -10,6 +10,7 @@ var config = require('config');
 var jwt = require('jsonwebtoken');
 var jsend = require('jsend');
 
+var httpCodes = config.get('httpCodes');
 
 var tokenConfig = config.get('JWT');
 
