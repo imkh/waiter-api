@@ -258,7 +258,7 @@ router.put('/:id/logout', function(req, res) {
                     res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                     return ;
                 }
-                res.jsend.success({});
+                res.jsend.success({message: 'User successfully logged out'});
             });
     });
 });
@@ -497,7 +497,7 @@ router.delete('/:id/delete', function(req, res) {
                 return ;
             }
 
-            var response = {};
+            var response = {message: 'User successfully deleted'};
             res.jsend.success(response);
         });
     });
