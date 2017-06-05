@@ -197,11 +197,10 @@ router.use(function(req, res, next) {
 /**
  * Route Waiter Join Event
  */
-router.put('/:id/join', function(req, res) {
+router.put('/:eventId/join/:waiterId', function(req, res) {
     var causes = [];
-    var userId = res.req.body.userId;
 
-    mongoose.model('User').findById(userId, function (err, user) {
+    mongoose.model('User').findById(req.params.waiterId, function (err, user) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
@@ -211,7 +210,7 @@ router.put('/:id/join', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Join event failed', causes: causes});
             return ;
         }
-        mongoose.model('Event').findById(req.params.id, function (err, event) {
+        mongoose.model('Event').findById(req.params.eventId, function (err, event) {
             if (err) {
                 res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;
@@ -223,11 +222,10 @@ router.put('/:id/join', function(req, res) {
                 return ;
             }
             if (user.waiterCurrentEvent !== null) {
-                causes.push('Waiter has already subscribed to an event');
+                causes.push('Waiter has already joined an event');
                 res.status(httpCodes.conflict).jsend.fail({message: 'Join event failed', causes: causes});
                 return ;
             }
-
 
 
             user.update({waiterCurrentEvent: event._id }, function (err) {
@@ -241,7 +239,7 @@ router.put('/:id/join', function(req, res) {
                         res.status(httpCodes.badRequest).jsend.error({message: err.message});
                         return ;
                     }
-                    res.jsend.success({});
+                    res.jsend.success({message: 'Waiter has successfully joined the event'});
                 });
             });
         });
@@ -251,11 +249,10 @@ router.put('/:id/join', function(req, res) {
 /**
  * Route Waiter Leave Event
  */
-router.put('/:id/leave', function(req, res) {
+router.put('/:eventId/leave/:waiterId', function(req, res) {
     var causes = [];
-    var userId = res.req.body.userId;
 
-    mongoose.model('User').findById(userId, function (err, user) {
+    mongoose.model('User').findById(req.params.waiterId, function (err, user) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
@@ -265,7 +262,7 @@ router.put('/:id/leave', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Leave event failed', causes: causes});
             return ;
         }
-        mongoose.model('Event').findById(req.params.id, function (err, event) {
+        mongoose.model('Event').findById(req.params.eventId, function (err, event) {
             if (err) {
                 res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;
@@ -278,13 +275,13 @@ router.put('/:id/leave', function(req, res) {
             }
 
             if (!user.waiterCurrentEvent) {
-                causes.push("waiter hasn't subscribe an event");
+                causes.push("Waiter hasn't joined any events");
                 res.status(httpCodes.conflict).jsend.fail({message: 'Leave event failed', causes: causes});
                 return ;
             }
 
-            if (user.waiterCurrentEvent !== req.params.id) {
-                causes.push("waiter hasn't subscribedd to this event");
+            if (user.waiterCurrentEvent !== req.params.eventId) {
+                causes.push("Waiter hasn't joined this event");
                 res.status(httpCodes.conflict).jsend.fail({message: 'Leave event failed', causes: causes});
                 return ;
             }
@@ -302,7 +299,7 @@ router.put('/:id/leave', function(req, res) {
                         res.status(httpCodes.badRequest).jsend.error({message: err.message});
                         return ;
                     }
-                    res.jsend.success({});
+                    res.jsend.success({message: 'Waiter has successfully left the event'});
                 });
             });
         });
