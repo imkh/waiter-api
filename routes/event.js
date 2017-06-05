@@ -168,7 +168,7 @@ router.delete('/:id/delete', function(req, res) {
                 res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;
             }
-            res.jsend.success({});
+            res.jsend.success({message: 'Event successfully deleted'});
         });
     });
 });
