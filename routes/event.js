@@ -11,6 +11,7 @@ var jwt = require('jsonwebtoken');
 var jsend = require('jsend');
 
 var httpCodes = config.get('httpCodes');
+var zoomDistanceRatio = config.get('zoomDistanceRatio');
 
 var tokenConfig = config.get('JWT');
 
@@ -83,8 +84,7 @@ router.post('/create', function(req, res) {
         name: res.req.body.name,
         description: res.req.body.description,
         address: res.req.body.address,
-        lat: res.req.body.lat,
-        long: res.req.body.long,
+        location: [res.req.body.long, res.req.body.lat],
         date: res.req.body.date
     };
 
@@ -95,10 +95,8 @@ router.post('/create', function(req, res) {
                     causes.push(err.errors.name.message);
                 if (err.errors.description)
                     causes.push(err.errors.description.message);
-                if (err.errors.lat)
-                    causes.push(err.errors.lat.message);
-                if (err.errors.long)
-                    causes.push(err.errors.long.message);
+                if (err.errors.location)
+                    causes.push(err.errors.location.message);
                 if (err.errors.date)
                     causes.push(err.errors.date.message)
             }
@@ -130,7 +128,39 @@ router.get('/:id', function(req, res) {
             return ;
         }
         res.jsend.success({event: event});
-    }).select('-listOfWaiters -__v');
+    }).select('-__v');
+});
+
+/**
+ * Route Get Event Near a Location
+ */
+router.get('/long/:long/lat/:lat/zoom/:zoom', function(req, res) {
+    var causes = [];
+
+    var long = parseFloat(req.params.long);
+    var lat = parseFloat(req.params.lat);
+    var zoom = parseInt(req.params.zoom);
+
+    if (!long)
+        causes.push('A long is required');
+    if (!lat)
+        causes.push('A lat is required');
+    if (!zoom)
+        causes.push('A zoom is required');
+    if (causes.length > 0) {
+        res.status(httpCodes.badRequest).jsend.fail({message: 'Get Event Near Location failed', causes: causes});
+        return ;
+    }
+
+    mongoose.model('Event').find({}, function (err, events) {
+        if (err) {
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            return ;
+        }
+        res.jsend.success({events: events});
+    }).where('location')
+        .near({ center: {type: 'Point', coordinates: [long, lat]}, maxDistance: zoomDistanceRatio[zoom - 1], spherical: true})
+        .select('-__v');
 });
 
 /**
@@ -143,7 +173,7 @@ router.get('/', function(req, res) {
             return ;
         }
         res.jsend.success({events: events});
-    });
+    }).select('-__v');
 });
 
 /**
