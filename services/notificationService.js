@@ -1,10 +1,10 @@
 
 var notificationService = {};
 
-historyService.sendNotification = function(userId) {
+notificationService.sendNotification = function(userId) {
 };
 
-historyService.sendNotifications = function(usersIds) {
+notificationService.sendNotifications = function(usersIds) {
 };
 
 
