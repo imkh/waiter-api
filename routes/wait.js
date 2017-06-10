@@ -12,7 +12,18 @@ var mongoose = require('mongoose');
 var methodOverride = require('method-override');
 var config = require('config');
 var jwt = require('jsonwebtoken');
-var io = require('socket.io')();
+
+
+var http = require('./../http');
+var io = require('socket.io')(http);
+
+
+io.on('connection', function(socket){
+    socket.on('waiter message', function(msg){
+	console.log('message: ' + msg);
+	io.emit('waiter message', msg);
+    });
+});
 
 var bcryptConfig = config.get('bcrypt');
 var tokenConfig = config.get('JWT');
@@ -66,6 +77,11 @@ router.param('id', function(req, res, next, id) {
     });
 });
 
+router.get('/socketTest', function(req, res) {
+    io.emit('waiter message', "waiter is here");    
+    res.status(200).jsend.success({});
+});
+
 router.get('/:id', function(req, res) {
     mongoose.model('Wait').findById(req.id, function (err, wait) {
         if (err) {
@@ -80,6 +96,7 @@ router.get('/:id', function(req, res) {
 	res.status(200).jsend.success(wait);
     });
 });
+
 
 router.get('/', function(req, res) {
     mongoose.model('Wait').find({}, function (err, waits) {
@@ -284,6 +301,7 @@ router.put('/:id/queue-start', function(req, res) {
 	if (wait.nresponses.length == wait.waitersIds.length) {
 	    wait.nresponses = [];
 	    wait.state = 'queue-start';
+//	    io.emit('waiter message', "queue started");
 	}
 
         wait.save(function (err) {
@@ -291,7 +309,8 @@ router.put('/:id/queue-start', function(req, res) {
                 res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
 		return ;
             }
-	    // TODO:: send notifications
+	    // TODO:: send notifications	    
+//	    io.emit('waiter message', wait.nresponses.length + "/" + wait.waitersIds.length + " in state of queue-start");
             res.status(200).json({status: 'success', data: wait});
         });
 
