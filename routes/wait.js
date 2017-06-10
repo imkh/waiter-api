@@ -184,7 +184,7 @@ router.post('/', function(req, res) {
 		    res.status(500).jsend.fail({message: 'fail wait creation', causes: causes});
 		    return ;
                 }
-		// TODO:: Get waiters to know that there are part of a wait
+		// TODO[Notification]:: Get waiters to know that there are part of a wait
                 event.save(function(err) {
                     if (err) {
 			res.status(500).jsend.fail('internal server error');
@@ -303,6 +303,7 @@ router.put('/:id/queue-start', function(req, res) {
 	if (wait.nresponses.length == wait.waitersIds.length) {
 	    wait.nresponses = [];
 	    wait.state = 'queue-start';
+	    // TODO[Notification]:: Get everyone to know how that the state has changed
 //	    io.emit('waiter message', "queue started");
 	}
 
@@ -332,12 +333,13 @@ router.put('/:id/queue-done', function(req, res) {
 	    return ;
         }
 
-	// TODO:: check state
+
 
 	wait.nresponses.push(waiterId);
 	if (wait.nresponses.length == wait.waitersIds.length) {
 	    wait.nresponses = [];
 	    wait.state = 'queue-done';
+	    // TODO[Notification]:: Get everyone to know how that the state has changed
 	}
 	
         wait.save(function (err) {
