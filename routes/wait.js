@@ -17,6 +17,8 @@ var jwt = require('jsonwebtoken');
 var http = require('./../http');
 var io = require('socket.io')(http);
 
+var historyService = require('./../services/historyService');
+
 
 io.on('connection', function(socket){
     socket.on('waiter message', function(msg){
@@ -400,7 +402,7 @@ router.put('/:id/validate', function(req, res) {
 	wait.nresponses.push(waiterId);
 	if (wait.nresponses.length == wait.waitersIds.length) {
 	    wait.nresponses = [];
-	    wait.state = 'payed';
+	    wait.state = 'paid';
 	}
 	
 
@@ -411,6 +413,7 @@ router.put('/:id/validate', function(req, res) {
                 res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
 		return ;
             }
+	    historyService.addHistory(wait);
             res.status(200).json({status: 'success', data: wait});
         });
     });

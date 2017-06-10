@@ -8,13 +8,17 @@ var db = require('./model/database.js');
 var userModel = require('./model/user.js');
 var eventModel = require('./model/event.js');
 var waitModel = require('./model/wait.js');
+var historyModel = require('./model/history.js');
 var userRoutes = require('./routes/user.js');
 var eventRoutes = require('./routes/event.js');
 var waitRoutes = require('./routes/wait.js');
+
 var config = require('config');
 
 var http = require('./http');
 /* var io = require('socket.io')(http);*/
+
+
 
 const serverConfig = config.get('server');
 
@@ -22,7 +26,6 @@ const serverConfig = config.get('server');
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
 });
-
 
 
 app.use(cors());

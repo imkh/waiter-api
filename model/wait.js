@@ -6,10 +6,12 @@ var waitSchema = new mongoose.Schema({
     clientId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     waitersIds: {type: [mongoose.Schema.Types.ObjectId], ref: 'User'},
     eventId: {type: mongoose.Schema.Types.ObjectId, ref: 'Event'},
-    state: {type: String, enum: ['created', 'queue-start', 'queue-done', 'conflict', 'payed']},
+    state: {type: String, enum: ['created', 'queue-start', 'queue-done', 'conflict', 'paid']},
     nresponses: {type: [mongoose.Schema.Types.ObjectId], ref: 'User'},
     createdAt: {type: Date, default: Date.now},
     updatedAt: {type: Date},
+    queueStart: {type: Date},
+    queueEnd: {type: Date},
     confirmationCode: {type: String}
 });
 
