@@ -22,7 +22,6 @@ var http = require('./http');
 
 const serverConfig = config.get('server');
 
-
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
 });
