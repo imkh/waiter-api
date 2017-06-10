@@ -1,6 +1,6 @@
-var express = require('express');
+var app = require('./express');
 
-var app = express();
+/* var app = express();*/
 var cors = require('cors');
 
 
@@ -13,14 +13,27 @@ var eventRoutes = require('./routes/event.js');
 var waitRoutes = require('./routes/wait.js');
 var config = require('config');
 
+var http = require('./http');
+/* var io = require('socket.io')(http);*/
+
 const serverConfig = config.get('server');
+
+
+app.get('/', function(req, res){
+    res.sendFile(__dirname + '/index.html');
+});
+
+
 
 app.use(cors());
 app.use('/user', userRoutes);
 app.use('/event', eventRoutes);
 app.use('/wait', waitRoutes);
 
-app.listen(serverConfig.port, function() {
+
+
+
+http.listen(serverConfig.port, function() {
     console.log('HTTP on port ' + serverConfig.port);
 });
 
