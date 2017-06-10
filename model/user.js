@@ -23,11 +23,7 @@ var userSchema = new mongoose.Schema({
     waiterCurrentEvent: {type: String, default: null},
     status: {type: String, enum: ['not-activated', 'activated', 'banned']},
     currentEvent: {type: mongoose.Schema.Types.ObjectId, ref: 'Event'},
-    devices: {
-        ios: [],
-        android: [],
-        web: []
-    }
+    devices: {type: [String]}
 });
 
 userSchema.plugin(beautifyUnique);
