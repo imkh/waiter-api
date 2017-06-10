@@ -78,6 +78,13 @@ router.post('/register', function(req, res) {
     var salt = bcrypt.genSaltSync(saltRounds);
     var causes = [];
 
+    var device = req.body.device || req.query.device || req.headers['device'];
+    if (!device || !res.req.body.deviceId) {
+        causes.push('A device is required (header and body)');
+        res.status(httpCodes.badRequest).jsend.fail({message: 'User registration failed', causes: causes});
+        return;
+    }
+
     if (!res.req.body.password) {
         causes.push('A password is required');
         res.status(httpCodes.badRequest).jsend.fail({message: 'User registration failed', causes: causes});
@@ -115,6 +122,8 @@ router.post('/register', function(req, res) {
                     causes.push(err.errors.status.message);
                 if (err.errors.confirmToken)
                     causes.push(err.errors.confirmToken.message);
+                if (err.errors.devices)
+                    causes.push(err.errors.devices.message);
             }
             res.status(httpCodes.badRequest).jsend.fail({message: 'User registration failed', causes: causes});
             return ;
@@ -130,18 +139,26 @@ router.post('/register', function(req, res) {
         //     console.log('Email sent at ' + emailConfig.to);
         // });
 
-        var token = jwt.sign(createdUser._id, tokenSecret, {
-            expiresIn: "31d" // expires in 30days hours
+        createdUser.devices[device].push(res.req.body.deviceId);
+        createdUser.save(function (err) {
+            if (err) {
+                res.status(httpCodes.badRequest).jsend.error({message: err.message});
+                return ;
+            }
+
+            var token = jwt.sign(createdUser._id, tokenSecret, {
+                expiresIn: "31d" // expires in 30days hours
+            });
+            var response = {
+                token: token,
+                user: {
+                    _id: createdUser._id.toString(),
+                    confirmToken: createdUser.confirmToken
+                }
+            };
+            res.status(httpCodes.created).jsend.success(response);
         });
 
-        var response = {
-            token: token,
-            user: {
-                _id: createdUser._id.toString(),
-                confirmToken: createdUser.confirmToken
-            }
-        };
-        res.status(httpCodes.created).jsend.success(response);
     });
 });
 
@@ -203,6 +220,13 @@ router.post('/login', function(req, res) {
         return ;
     }
 
+    var device = req.body.device || req.query.device || req.headers['device'];
+    if (!device || !res.req.body.deviceId) {
+        causes.push('A device is required (header and body)');
+        res.status(httpCodes.badRequest).jsend.fail({message: 'User login failed', causes: causes});
+        return;
+    }
+
     mongoose.model('User').findOne({email: res.req.body.email}, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
@@ -230,8 +254,18 @@ router.post('/login', function(req, res) {
                 lastName: user.lastName
             }
         };
-
-        res.jsend.success(response);
+        if (!user.devices[device].includes(res.req.body.deviceId)) {
+            user.devices[device].push(res.req.body.deviceId);
+            user.save(function (err) {
+                if (err) {
+                    res.status(httpCodes.badRequest).jsend.error({message: err.message});
+                    return ;
+                }
+                res.jsend.success(response);
+            });
+        } else {
+            res.jsend.success(response);
+        }
     });
 });
 
