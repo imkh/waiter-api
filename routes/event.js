@@ -15,8 +15,8 @@ var zoomDistanceRatio = config.get('zoomDistanceRatio');
 
 var tokenConfig = config.get('JWT');
 
-var User = require('./../model/user');
-var Event = require('./../model/event');
+var User = require('./../models/user');
+var Event = require('./../models/event');
 const tokenSecret = tokenConfig.tokenSecret;
 
 //@TODO remove callback hell !!!
