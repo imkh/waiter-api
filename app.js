@@ -10,9 +10,9 @@ var eventModel = require('./models/Event.js');
 var waitModel = require('./models/Wait.js');
 var historyModel = require('./models/History.js');
 
-var userRoutes = require('./routes/user.js');
-var eventRoutes = require('./routes/event.js');
-var waitRoutes = require('./routes/wait.js');
+var userRoutes = require('./controllers/UserController.js');
+var eventRoutes = require('./controllers/EventController.js');
+var waitRoutes = require('./controllers/WaitController.js');
 
 var config = require('config');
 
