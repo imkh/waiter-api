@@ -325,8 +325,6 @@ router.put('/:id/queue-start', function(req, res) {
             if (wait.state === 'created' && wait.waitersIds.length > 1 && wait.nresponses.length < wait.waitersIds.length) {
                 var message = "";
                 if (wait.nresponses.length === 1) {
-                    console.log("wait.waitersIds.length = " + wait.waitersIds.length);
-                    console.log("wait.nresponses.length = " + wait.nresponses.length);
                     message = "The first waiter arrived at " + wait.eventName + ". Only " + (wait.waitersIds.length - wait.nresponses.length) + " left!";
                 } else {
                     message = wait.nresponses.length + "/" + wait.waitersIds.length + " waiter arrived at " + wait.eventName + ". Only " + (wait.waitersIds.length - wait.nresponses.length) + " left!";
