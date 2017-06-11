@@ -19,6 +19,7 @@ var io = require('socket.io')(http);
 
 var historyService = require('./../services/historyService');
 var notificationService = require('./../services/notificationService.js');
+var transactionService = require('./../services/transactionService.js');
 
 io.on('connection', function(socket){
     socket.on('waiter message', function(msg){
@@ -440,6 +441,7 @@ router.put('/:id/validate', function(req, res) {
                 return ;
             }
             historyService.addHistory(wait);
+	    transactionService.makeTransactionsForAWait(wait);
             res.status(200).json({status: 'success', data: wait});
         });
     });
