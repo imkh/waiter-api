@@ -1,4 +1,4 @@
-var Transaction = require('./../models/transaction.js');
+var Transaction = require('./../models/Transaction.js');
 
 var transactionService = {};
 

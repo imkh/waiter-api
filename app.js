@@ -4,11 +4,11 @@ var app = require('./express');
 var cors = require('cors');
 
 
-var db = require('./models/database.js');
-var userModel = require('./models/user.js');
-var eventModel = require('./models/event.js');
-var waitModel = require('./models/wait.js');
-var historyModel = require('./models/history.js');
+var db = require('./models/Database.js');
+var userModel = require('./models/User.js');
+var eventModel = require('./models/Event.js');
+var waitModel = require('./models/Wait.js');
+var historyModel = require('./models/History.js');
 
 var userRoutes = require('./routes/user.js');
 var eventRoutes = require('./routes/event.js');

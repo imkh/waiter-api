@@ -1,6 +1,6 @@
-var Event = require('./../models/event');
-var User = require('./../models/user');
-var History = require('./../models/history');
+var Event = require('./../models/Event');
+var User = require('./../models/User');
+var History = require('./../models/History');
 
 var historyService = {};
 

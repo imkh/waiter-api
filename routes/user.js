@@ -14,7 +14,7 @@ var tokenConfig = config.get('JWT');
 var emailConfig = config.get('email');
 var smtpConfig = config.get('smtp');
 var httpCodes = config.get('httpCodes');
-var User = require('./../models/user');
+var User = require('./../models/User');
 
 
 var transporter = nodemailer.createTransport(smtpConfig);

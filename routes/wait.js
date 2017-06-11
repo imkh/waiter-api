@@ -17,9 +17,9 @@ var jwt = require('jsonwebtoken');
 var http = require('./../http');
 var io = require('socket.io')(http);
 
-var User = require('./../models/user');
-var Event = require('./../models/event');
-var Wait = require('./../models/wait');
+var User = require('./../models/User');
+var Event = require('./../models/Event');
+var Wait = require('./../models/Wait');
 
 var historyService = require('./../services/historyService');
 var notificationService = require('./../services/notificationService.js');

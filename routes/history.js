@@ -10,7 +10,7 @@ var config = require('config');
 var jwt = require('jsonwebtoken');
 var jsend = require('jsend');
 
-var History = require('./../models/history');
+var History = require('./../models/History');
 
 var httpCodes = config.get('httpCodes');
 var zoomDistanceRatio = config.get('zoomDistanceRatio');
