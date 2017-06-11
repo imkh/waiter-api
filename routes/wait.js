@@ -196,7 +196,7 @@ router.post('/', function(req, res) {
 
                     notificationService.sendNotifications(newWait.waitersIds, "You have been requested for " + event.name + "!");
 
-                    res.status(200).jsend.success({wait: wait});
+                    res.status(201).jsend.success({wait: wait});
                 });
             });
 
