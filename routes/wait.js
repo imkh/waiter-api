@@ -166,6 +166,7 @@ router.post('/', function(req, res) {
                 state: 'created',
                 clientId: userId,
                 eventId: eventId,
+                eventName: event.name,
                 nresponses: [],
                 waitersIds: []
             };
