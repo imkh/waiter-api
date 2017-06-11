@@ -24,7 +24,7 @@ http://brew.sh/
 
 ### Node.js
 
-`brew install nodejs`
+`npm install nodejs`
 
 ### Mongodb
 
