@@ -28,21 +28,14 @@ app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
 });
 
-
 app.use(cors());
 app.use('/user', userRoutes);
 app.use('/event', eventRoutes);
 app.use('/wait', waitRoutes);
 
 
-
-
 http.listen(serverConfig.port, function() {
     console.log('HTTP on port ' + serverConfig.port);
 });
-
-var notificationService = require('./services/notificationService.js');
-
-notificationService.sendNotifications(["59021bfd032efe2cb34ad418", "5928c1aec86f02308502b9bd"]);
 
 module.exports = app;
