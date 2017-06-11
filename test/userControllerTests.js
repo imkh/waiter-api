@@ -9,7 +9,7 @@ var request = require('supertest');
 var config = require('config');
 var mongoose = require('mongoose');
 
-var User = require('./../model/user');
+var User = require('./../models/User');
 
 var app = require('../app');
 
@@ -29,7 +29,7 @@ describe('User', function(){
     //Before each test we empty the database
 
     before(function (done){
-        mongoose.model('User').remove({}, function (err){
+        User.remove({}, function (err){
             done();
         });
     });
