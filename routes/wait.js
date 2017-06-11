@@ -161,7 +161,7 @@ router.post('/', function(req, res) {
             }
             if (event.listOfWaiters.length < numberOfWaiters) {
                 causes.push('Not enough waiters joined this event');
-                res.status(404).jsend.fail({message: 'Create wait failed', causes: causes});
+                res.status(409).jsend.fail({message: 'Create wait failed', causes: causes});
                 return ;
             }
 
