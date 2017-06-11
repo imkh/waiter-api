@@ -18,12 +18,12 @@ var http = require('./../http');
 var io = require('socket.io')(http);
 
 var historyService = require('./../services/historyService');
-
+var notificationService = require('./../services/notificationService.js');
 
 io.on('connection', function(socket){
     socket.on('waiter message', function(msg){
-	console.log('message: ' + msg);
-	io.emit('waiter message', msg);
+        console.log('message: ' + msg);
+        io.emit('waiter message', msg);
     });
 });
 
@@ -80,7 +80,7 @@ router.param('id', function(req, res, next, id) {
 });
 
 router.get('/socketTest', function(req, res) {
-    io.emit('waiter message', "waiter is here");    
+    io.emit('waiter message', "waiter is here");
     res.status(200).jsend.success({});
 });
 
@@ -88,14 +88,14 @@ router.get('/:id', function(req, res) {
     mongoose.model('Wait').findById(req.id, function (err, wait) {
         if (err) {
             res.status(500).json({status: "fail", data: {message: 'internal server error'}});
-	    return ;
+            return ;
         }
 
         if (event === null) {
             res.status(404).json({status: "fail", data: {message: 'wait not found'}});
-	    return ;
+            return ;
         }
-	res.status(200).jsend.success(wait);
+        res.status(200).jsend.success(wait);
     });
 });
 
@@ -104,9 +104,9 @@ router.get('/', function(req, res) {
     mongoose.model('Wait').find({}, function (err, waits) {
         if (err) {
             res.status(500).json({status: "fail"});
-	    return ;
+            return ;
         }
-	res.status(200).jsend.success(waits);
+        res.status(200).jsend.success(waits);
     });
 });
 
@@ -132,7 +132,7 @@ router.get('/', function(req, res) {
 //@TODO add push notification and multi waiters management
 
 router.post('/', function(req, res) {
-    
+
     var causes = [];
 
     var userId = res.req.body.userId;
@@ -141,39 +141,39 @@ router.post('/', function(req, res) {
 
     mongoose.model('User').findById(userId, function(err, user) {
         if (err) {
-	    res.status(500).jsend.fail('internal server error');
-	    return ;
+            res.status(500).jsend.fail('internal server error');
+            return ;
         }
-	if (user === null) {
-	    res.status(500).jsend.fail('user not found');
-	    return ;
-        } 
+        if (user === null) {
+            res.status(500).jsend.fail('user not found');
+            return ;
+        }
         mongoose.model('Event').findById(eventId, function(err, event) {
             if (err) {
-		res.status(500).jsend.fail('internal server error');
-		return ;
+                res.status(500).jsend.fail('internal server error');
+                return ;
             }
-	    if (event === null) {
-		res.status(404).jsend.fail('event not found');
-		return ;
+            if (event === null) {
+                res.status(404).jsend.fail('event not found');
+                return ;
             }
-	    if (event.listOfWaiters.length < numberOfWaiters) {
-		res.status(404).jsend.fail('not enough waiter');
-		return ;
+            if (event.listOfWaiters.length < numberOfWaiters) {
+                res.status(404).jsend.fail('not enough waiter');
+                return ;
             }
-		
+
             var newWait = {
                 state: 'created',
                 clientId: userId,
-		eventId: eventId,
-		nresponses: [],
+                eventId: eventId,
+                nresponses: [],
                 waitersIds: []
             };
-	    
-	    for (var i = 0; i != numberOfWaiters; i++) {
-		newWait.waitersIds.push(event.listOfWaiters.shift());
-	    }
-		
+
+            for (var i = 0; i !== numberOfWaiters; i++) {
+                newWait.waitersIds.push(event.listOfWaiters.shift());
+            }
+
 
             mongoose.model('Wait').create(newWait, function(err, wait) {
                 if (err) {
@@ -181,19 +181,21 @@ router.post('/', function(req, res) {
                         if (err.errors.userId)
                             causes.push(err.errors.userId.message)
                     }
-		    res.status(500).jsend.fail({message: 'fail wait creation', causes: causes});
-		    return ;
+                    res.status(500).jsend.fail({message: 'fail wait creation', causes: causes});
+                    return ;
                 }
-		// TODO[Notification]:: Get waiters to know that there are part of a wait
                 event.save(function(err) {
                     if (err) {
-			res.status(500).jsend.fail('internal server error');
-			return ;
-		    }
-		    res.status(200).jsend.success(wait);
+                        res.status(500).jsend.fail('internal server error');
+                        return ;
+                    }
+
+                    notificationService.sendNotifications(newWait.waitersIds, "You have been requested for " + event.name + "!");
+
+                    res.status(200).jsend.success(wait);
                 });
             });
-	    
+
         });
     });
 });
@@ -292,27 +294,27 @@ router.put('/:id/queue-start', function(req, res) {
     mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'created'}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-	    return ;
+            return ;
         }
-	if (wait === null) {
+        if (wait === null) {
             res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-	    return ;
+            return ;
         }
-	
-	wait.nresponses.push(waiterId);
-	if (wait.nresponses.length == wait.waitersIds.length) {
-	    wait.nresponses = [];
-	    wait.state = 'queue-start';
-	    // TODO[Notification]:: Get everyone to know how that the state has changed
+
+        wait.nresponses.push(waiterId);
+        if (wait.nresponses.length == wait.waitersIds.length) {
+            wait.nresponses = [];
+            wait.state = 'queue-start';
+            // TODO[Notification]:: Get everyone to know how that the state has changed
 //	    io.emit('waiter message', "queue started");
-	}
+        }
 
         wait.save(function (err) {
             if (err) {
                 res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-		return ;
+                return ;
             }
-	    // TODO:: send notifications	    
+            // TODO:: send notifications
 //	    io.emit('waiter message', wait.nresponses.length + "/" + wait.waitersIds.length + " in state of queue-start");
             res.status(200).json({status: 'success', data: wait});
         });
@@ -326,32 +328,32 @@ router.put('/:id/queue-done', function(req, res) {
     mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'queue-start'}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-	    return ;
+            return ;
         }
-	if (wait === null) {
+        if (wait === null) {
             res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-	    return ;
+            return ;
         }
 
 
 
-	wait.nresponses.push(waiterId);
-	if (wait.nresponses.length == wait.waitersIds.length) {
-	    wait.nresponses = [];
-	    wait.state = 'queue-done';
-	    // TODO[Notification]:: Get everyone to know how that the state has changed
-	}
-	
+        wait.nresponses.push(waiterId);
+        if (wait.nresponses.length == wait.waitersIds.length) {
+            wait.nresponses = [];
+            wait.state = 'queue-done';
+            // TODO[Notification]:: Get everyone to know how that the state has changed
+        }
+
         wait.save(function (err) {
             if (err) {
                 res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-		return ;
+                return ;
             }
 
-	    // TODO:: send notifications
+            // TODO:: send notifications
             res.status(200).json({status: 'success', data: wait});
         });
-	
+
     });
 });
 
@@ -362,11 +364,11 @@ router.put('/:id/generate-code', function(req, res) {
     mongoose.model('Wait').findOne({_id: req.id, clientId: clientId, state: 'queue-done', confirmationCode: null}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-	    return ;
+            return ;
         }
-	if (wait === null) {
+        if (wait === null) {
             res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-	    return ;
+            return ;
         }
 
         var code = makeid();
@@ -376,8 +378,8 @@ router.put('/:id/generate-code', function(req, res) {
         wait.save(function (err) {
             if (err) {
                 res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-		return ;
-            } 
+                return ;
+            }
             res.status(200).json({status: 'success', data: {code: code}});
         });
     });
@@ -390,32 +392,32 @@ router.put('/:id/validate', function(req, res) {
     mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'queue done', confirmationCode: { $ne: null }}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-	    return ;
+            return ;
         }
-	if (wait === null) {
+        if (wait === null) {
             res.status(404).json({status: 'fail', data: {message: 'wait not found'}});
-	    return ;
+            return ;
         }
         if (!bcrypt.compareSync(code, wait.confirmationCode)) {
             res.status(500).json({status: 'fail', data: {message: 'invalid token'}});
-	    return ;
+            return ;
         }
 
-	wait.nresponses.push(waiterId);
-	if (wait.nresponses.length == wait.waitersIds.length) {
-	    wait.nresponses = [];
-	    wait.state = 'paid';
-	}
-	
+        wait.nresponses.push(waiterId);
+        if (wait.nresponses.length == wait.waitersIds.length) {
+            wait.nresponses = [];
+            wait.state = 'paid';
+        }
 
-	// TODO:: cmake transaction
-	
+
+        // TODO:: cmake transaction
+
         wait.save(function (err) {
             if (err) {
                 res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-		return ;
+                return ;
             }
-	    historyService.addHistory(wait);
+            historyService.addHistory(wait);
             res.status(200).json({status: 'success', data: wait});
         });
     });
