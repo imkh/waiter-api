@@ -325,7 +325,7 @@ router.put('/:id/queue-start', function(req, res) {
         wait.save(function (err) {
             if (err) {
 		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
-                return;
+                return ;
             }
             if (wait.state === 'created' && wait.waitersIds.length > 1 && wait.nresponses.length < wait.waitersIds.length) {
                 var message = "";
@@ -360,13 +360,20 @@ router.put('/:id/queue-done', function(req, res) {
         }
 
 
-
+        var devices = wait.waitersIds.slice();
+	devices.push(wait.clientId);
+	
         wait.nresponses.push(waiterId);
-        if (wait.nresponses.length == wait.waitersIds.length) {
+        if (wait.nresponses.length === wait.waitersIds.length) {
+            if (wait.waitersIds.length > 1) {
+                notificationService.sendNotifications(devices, "All waiters have finished there wait at " + wait.eventName);
+            } else {
+                notificationService.sendNotifications(devices, "Your waiter has finished his wait at " + wait.eventName);
+            }
+	    
             wait.nresponses = [];
             wait.state = 'queue-done';
 	    wait.queueEnd = Date.now;
-            // TODO[Notification]:: Get everyone to know how that the state has changed
         }
 
         wait.save(function (err) {
@@ -374,7 +381,17 @@ router.put('/:id/queue-done', function(req, res) {
 		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
+            if (wait.state === 'queue-start' && wait.waitersIds.length > 1 && wait.nresponses.length < wait.waitersIds.length) {
+                var message = "";
+                if (wait.nresponses.length === 1) {
+                    message = "The first waiter finished his wait at " + wait.eventName + ". Only " + (wait.waitersIds.length - wait.nresponses.length) + " left!";
+                } else {
+                    message = wait.nresponses.length + "/" + wait.waitersIds.length + " waiter have finished there wait at " + wait.eventName + ". Only " + (wait.waitersIds.length - wait.nresponses.length) + " left!";
+                }
+                notificationService.sendNotifications(devices, message);
+            }
 
+	    
             // TODO:: send notifications
 	    res.jsend.success({wait: wait});
         });
