@@ -317,6 +317,7 @@ router.put('/:id/queue-start', function(req, res) {
             }
             wait.nresponses = [];
             wait.state = 'queue-start';
+	    wait.queueStart = Date.now;
 //	    io.emit('waiter message', "queue started");
         }
 
@@ -361,6 +362,7 @@ router.put('/:id/queue-done', function(req, res) {
         if (wait.nresponses.length == wait.waitersIds.length) {
             wait.nresponses = [];
             wait.state = 'queue-done';
+	    wait.queueEnd = Date.now;
             // TODO[Notification]:: Get everyone to know how that the state has changed
         }
 
