@@ -1,3 +1,4 @@
+var app = require('../app');
 var chai = require('chai');
 var assert = chai.assert;
 var expect = chai.expect;
@@ -7,12 +8,10 @@ var chaiHttp = require('chai-http');
 var express = require('express');
 var request = require('supertest');
 var config = require('config');
-var mongoose = require('mongoose');
 
 var User = require('./../models/User');
 
-var app = require('../app');
-
+var httpCodes = config.get('httpCodes');
 const serverConfig = config.get('server');
 
 chai.use(chaiHttp);
@@ -42,7 +41,7 @@ describe('User', function(){
             chai.request(app)
                 .get('/user')
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('users').and.to.deep.equal([]);
@@ -76,7 +75,7 @@ describe('User', function(){
                     if (err) {
                         console.log(err);
                     }
-                    expect(res).to.have.status(201);
+                    expect(res).to.have.status(httpCodes.created);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('token');
@@ -106,7 +105,7 @@ describe('User', function(){
                 .post('/user/register')
                 .send(data)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(400);
+                    expect(res).to.have.status(httpCodes.badRequest);
                     expect(res.body).to.have.property('status').and.to.equal('fail');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
@@ -122,7 +121,7 @@ describe('User', function(){
                 .post('/user/register')
                 .send(data)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(400);
+                    expect(res).to.have.status(httpCodes.badRequest);
                     expect(res.body).to.have.property('status').and.to.equal('fail');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
@@ -138,7 +137,7 @@ describe('User', function(){
                 .post('/user/register')
                 .send(data)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(400);
+                    expect(res).to.have.status(httpCodes.badRequest);
                     expect(res.body).to.have.property('status').and.to.equal('fail');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
@@ -159,7 +158,7 @@ describe('User', function(){
                 .post('/user/register')
                 .send(data)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(400);
+                    expect(res).to.have.status(httpCodes.badRequest);
                     expect(res.body).to.have.property('status').and.to.equal('fail');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
@@ -179,7 +178,7 @@ describe('User', function(){
             chai.request(app)
                 .get('/user')
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('users').and.to.have.length.of(1);
@@ -201,7 +200,7 @@ describe('User', function(){
             chai.request(app)
                 .get('/user/confirm/' + userId + '/token/' + userConfirmToken)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('user');
@@ -220,7 +219,7 @@ describe('User', function(){
             chai.request(app)
                 .get('/user')
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('users').and.to.have.length.of(1);
@@ -242,7 +241,7 @@ describe('User', function(){
             chai.request(app)
                 .get('/user/available/' + 'email@available.com')
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('This email address is available');
@@ -259,7 +258,7 @@ describe('User', function(){
             chai.request(app)
                 .get('/user/available/' + userEmail)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(409);
+                    expect(res).to.have.status(httpCodes.conflict);
                     expect(res.body).to.have.property('status').and.to.equal('fail');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('This email address is already used');
@@ -282,7 +281,7 @@ describe('User', function(){
                 .post('/user/login')
                 .send(data)
                 .end(function(err, res){
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('token');
@@ -309,7 +308,7 @@ describe('User', function(){
                 .post('/user/login')
                 .send(data)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(400);
+                    expect(res).to.have.status(httpCodes.badRequest);
                     expect(res.body).to.have.property('status').and.to.equal('fail');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('User login failed');
@@ -327,7 +326,7 @@ describe('User', function(){
                 .post('/user/login')
                 .send(data)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(404);
+                    expect(res).to.have.status(httpCodes.notFound);
                     expect(res.body).to.have.property('status').and.to.equal('fail');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('User login failed');
@@ -344,7 +343,7 @@ describe('User', function(){
                 .post('/user/login')
                 .send(data)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(401);
+                    expect(res).to.have.status(httpCodes.unauthorized);
                     expect(res.body).to.have.property('status').and.to.equal('fail');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('message').and.to.equal('User login failed');
@@ -364,7 +363,7 @@ describe('User', function(){
                 .get('/user/' + userId)
                 .set('x-access-token', userToken)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('user');
@@ -395,7 +394,7 @@ describe('User', function(){
                 .send(data)
                 .set('x-access-token', userToken)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('user');
@@ -424,7 +423,7 @@ describe('User', function(){
                 .send(data)
                 .set('x-access-token', userToken)
                 .end(function(err, res)  {
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('user');
@@ -451,7 +450,7 @@ describe('User', function(){
                 .post('/user/login')
                 .send(data)
                 .end(function(err, res){
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     expect(res.body.data).to.have.property('token');
@@ -478,7 +477,7 @@ describe('User', function(){
                 .post('/user/login')
                 .send(data)
                 .end(function(err, res){
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     done();
@@ -502,7 +501,7 @@ describe('User', function(){
                 .send(data)
                 .set('x-access-token', userToken)
                 .end(function(err, res){
-                    expect(res).to.have.status(200);
+                    expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
                     expect(res.body).to.have.property('data');
                     done();
@@ -519,7 +518,7 @@ describe('User', function(){
                 .delete('/user/' + userId + '/delete')
                 .set('x-access-token', userToken)
                 .end(function(err, res){
-                    expect(res).to.have.status(404);
+                    expect(res).to.have.status(httpCodes.notFound);
                     expect(res.body).to.have.property('status').and.to.equal('fail');
                     done();
                 });
