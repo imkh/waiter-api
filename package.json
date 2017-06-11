@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/imkh/waiter-api#readme",
   "dependencies": {
-    "bcrypt": "^1.0.2",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.16.0",
     "chai-http": "^3.0.0",
     "config": "^1.24.0",
