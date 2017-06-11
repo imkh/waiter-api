@@ -137,28 +137,31 @@ router.post('/', function(req, res) {
 
     var userId = res.req.body.userId;
     var eventId = res.req.body.eventId;
-    var numberOfWaiters = parseInt(res.req.body.numberOfWaiters);
+    var numberOfWaiters = res.req.body.numberOfWaiters;
 
     mongoose.model('User').findById(userId, function(err, user) {
         if (err) {
-            res.status(500).jsend.fail('internal server error');
+            res.status(500).jsend.fail({message: err.message});
             return ;
         }
         if (user === null) {
-            res.status(500).jsend.fail('user not found');
+            causes.push('User not found');
+            res.status(404).jsend.fail({message: 'Create wait failed', causes: causes});
             return ;
         }
         mongoose.model('Event').findById(eventId, function(err, event) {
             if (err) {
-                res.status(500).jsend.fail('internal server error');
+                res.status(500).jsend.error({message: err.message});
                 return ;
             }
             if (event === null) {
-                res.status(404).jsend.fail('event not found');
+                causes.push('Event not found');
+                res.status(404).jsend.fail({message: 'Create wait failed', causes: causes});
                 return ;
             }
             if (event.listOfWaiters.length < numberOfWaiters) {
-                res.status(404).jsend.fail('not enough waiter');
+                causes.push('Not enough waiters joined this event');
+                res.status(404).jsend.fail({message: 'Create wait failed', causes: causes});
                 return ;
             }
 
@@ -182,18 +185,18 @@ router.post('/', function(req, res) {
                         if (err.errors.userId)
                             causes.push(err.errors.userId.message)
                     }
-                    res.status(500).jsend.fail({message: 'fail wait creation', causes: causes});
+                    res.status(400).jsend.error({message: 'Create wait failed', causes: causes});
                     return ;
                 }
                 event.save(function(err) {
                     if (err) {
-                        res.status(500).jsend.fail('internal server error');
+                        res.status(500).jsend.error({message: err.message});
                         return ;
                     }
 
                     notificationService.sendNotifications(newWait.waitersIds, "You have been requested for " + event.name + "!");
 
-                    res.status(200).jsend.success(wait);
+                    res.status(200).jsend.success({wait: wait});
                 });
             });
 
