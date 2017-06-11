@@ -302,20 +302,38 @@ router.put('/:id/queue-start', function(req, res) {
             return ;
         }
 
+        var devices = wait.waitersIds.slice();
+        devices.push(wait.clientId);
+
         wait.nresponses.push(waiterId);
-        if (wait.nresponses.length == wait.waitersIds.length) {
+        if (wait.nresponses.length === wait.waitersIds.length) {
+            if (wait.waitersIds.length > 1) {
+                notificationService.sendNotifications(devices, "All waiters arrived at " + wait.eventName + ". The wait can start!");
+            } else {
+                notificationService.sendNotifications(devices, "Your waiter arrived at " + wait.eventName + ". The wait can start!");
+            }
             wait.nresponses = [];
             wait.state = 'queue-start';
-            // TODO[Notification]:: Get everyone to know how that the state has changed
 //	    io.emit('waiter message', "queue started");
         }
 
         wait.save(function (err) {
             if (err) {
                 res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
-                return ;
+                return;
             }
-            // TODO:: send notifications
+            if (wait.state === 'created' && wait.waitersIds.length > 1 && wait.nresponses.length < wait.waitersIds.length) {
+                var message = "";
+                if (wait.nresponses.length === 1) {
+                    console.log("wait.waitersIds.length = " + wait.waitersIds.length);
+                    console.log("wait.nresponses.length = " + wait.nresponses.length);
+                    message = "The first waiter arrived at " + wait.eventName + ". Only " + (wait.waitersIds.length - wait.nresponses.length) + " left!";
+                } else {
+                    message = wait.nresponses.length + "/" + wait.waitersIds.length + " waiter arrived at " + wait.eventName + ". Only " + (wait.waitersIds.length - wait.nresponses.length) + " left!";
+                }
+                notificationService.sendNotifications(devices, message);
+            }
+
 //	    io.emit('waiter message', wait.nresponses.length + "/" + wait.waitersIds.length + " in state of queue-start");
             res.status(200).json({status: 'success', data: wait});
         });
