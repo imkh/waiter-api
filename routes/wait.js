@@ -17,6 +17,10 @@ var jwt = require('jsonwebtoken');
 var http = require('./../http');
 var io = require('socket.io')(http);
 
+var User = require('./../model/user');
+var Event = require('./../model/event');
+var Wait = require('./../model/wait');
+
 var historyService = require('./../services/historyService');
 var notificationService = require('./../services/notificationService.js');
 var transactionService = require('./../services/transactionService.js');
@@ -62,7 +66,7 @@ router.use(bodyParser.urlencoded({
 }));
 
 router.param('id', function(req, res, next, id) {
-    mongoose.model('Wait').findById(id, function (err, wait) {
+    Wait.findById(id, function (err, wait) {
         if (err) {
             console.log(id + ' was not found');
             res.status(404)
@@ -86,7 +90,7 @@ router.get('/socketTest', function(req, res) {
 });
 
 router.get('/:id', function(req, res) {
-    mongoose.model('Wait').findById(req.id, function (err, wait) {
+    Wait.findById(req.id, function (err, wait) {
         if (err) {
             res.status(500).json({status: "fail", data: {message: 'internal server error'}});
             return ;
@@ -102,7 +106,7 @@ router.get('/:id', function(req, res) {
 
 
 router.get('/', function(req, res) {
-    mongoose.model('Wait').find({}, function (err, waits) {
+    Wait.find({}, function (err, waits) {
         if (err) {
             res.status(500).json({status: "fail"});
             return ;
@@ -140,7 +144,7 @@ router.post('/', function(req, res) {
     var eventId = res.req.body.eventId;
     var numberOfWaiters = res.req.body.numberOfWaiters;
 
-    mongoose.model('User').findById(userId, function(err, user) {
+    User.findById(userId, function(err, user) {
         if (err) {
             res.status(500).jsend.fail({message: err.message});
             return ;
@@ -150,7 +154,7 @@ router.post('/', function(req, res) {
             res.status(404).jsend.fail({message: 'Create wait failed', causes: causes});
             return ;
         }
-        mongoose.model('Event').findById(eventId, function(err, event) {
+        Event.findById(eventId, function(err, event) {
             if (err) {
                 res.status(500).jsend.error({message: err.message});
                 return ;
@@ -179,8 +183,7 @@ router.post('/', function(req, res) {
                 newWait.waitersIds.push(event.listOfWaiters.shift());
             }
 
-
-            mongoose.model('Wait').create(newWait, function(err, wait) {
+            Wait.create(newWait, function(err, wait) {
                 if (err) {
                     if (err.errors) {
                         if (err.errors.userId)
@@ -296,7 +299,7 @@ router.post('/', function(req, res) {
 router.put('/:id/queue-start', function(req, res) {
     var waiterId = res.req.body.waiterId;
 
-    mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'created'}, function(err, wait) {
+    Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'created'}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
             return ;
@@ -347,7 +350,7 @@ router.put('/:id/queue-start', function(req, res) {
 router.put('/:id/queue-done', function(req, res) {
     var waiterId = res.req.body.waiterId;
 
-    mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'queue-start'}, function(err, wait) {
+    Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue-start'}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
             return ;
@@ -384,7 +387,7 @@ router.put('/:id/queue-done', function(req, res) {
 router.put('/:id/generate-code', function(req, res) {
     var clientId = res.req.body.clientId;
 
-    mongoose.model('Wait').findOne({_id: req.id, clientId: clientId, state: 'queue-done', confirmationCode: null}, function(err, wait) {
+    Wait.findOne({_id: req.id, clientId: clientId, state: 'queue-done', confirmationCode: null}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
             return ;
@@ -412,7 +415,7 @@ router.put('/:id/validate', function(req, res) {
     var waiterId = res.req.body.waiterId;
     var code = res.req.body.code;
 
-    mongoose.model('Wait').findOne({_id: req.id, waitersIds: waiterId, state: 'queue done', confirmationCode: { $ne: null }}, function(err, wait) {
+    Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue done', confirmationCode: { $ne: null }}, function(err, wait) {
         if (err) {
             res.status(500).json({status: 'fail', data: {message: 'internal server error'}});
             return ;

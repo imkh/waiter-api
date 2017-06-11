@@ -1,4 +1,5 @@
-var mongoose = require('mongoose');
+var User = require('./../model/user');
+
 
 var headers = {
     "Content-Type": "application/json; charset=utf-8",
@@ -16,7 +17,7 @@ var notificationService = {};
 
 notificationService.sendNotifications = function(usersIds, message) {
     var devices = [];
-    mongoose.model('User').find({}).where('_id').in(usersIds).select('email devices').exec(function (err, users) {
+    User.find({}).where('_id').in(usersIds).select('email devices').exec(function (err, users) {
         if (err) {
             console.log(err.message);
             return ;

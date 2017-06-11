@@ -15,6 +15,8 @@ var zoomDistanceRatio = config.get('zoomDistanceRatio');
 
 var tokenConfig = config.get('JWT');
 
+var User = require('./../model/user');
+var Event = require('./../model/event');
 const tokenSecret = tokenConfig.tokenSecret;
 
 //@TODO remove callback hell !!!
@@ -42,7 +44,7 @@ router.use(bodyParser.urlencoded({
 router.param('id', function(req, res, next, id) {
     var causes = [];
 
-    mongoose.model('Event').findById(id, function (err, event) {
+    Event.findById(id, function (err, event) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -88,7 +90,7 @@ router.post('/create', function(req, res) {
         date: res.req.body.date
     };
 
-    mongoose.model('Event').create(event, function(err, createdEvent) {
+    Event.create(event, function(err, createdEvent) {
         if (err) {
             if (err.errors) {
                 if (err.errors.name)
@@ -117,7 +119,7 @@ router.post('/create', function(req, res) {
 router.get('/:id', function(req, res) {
     var causes = [];
 
-    mongoose.model('Event').findById(req.params.id, function (err, event) {
+    Event.findById(req.params.id, function (err, event) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -152,7 +154,7 @@ router.get('/long/:long/lat/:lat/zoom/:zoom', function(req, res) {
         return ;
     }
 
-    mongoose.model('Event').find({}, function (err, events) {
+    Event.find({}, function (err, events) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -167,7 +169,7 @@ router.get('/long/:long/lat/:lat/zoom/:zoom', function(req, res) {
  * Route Get All Events
  */
 router.get('/', function(req, res) {
-    mongoose.model('Event').find({}, function (err, events) {
+    Event.find({}, function (err, events) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -182,7 +184,7 @@ router.get('/', function(req, res) {
 router.delete('/:id/delete', function(req, res) {
     var causes = [];
 
-    mongoose.model('Event').findById(req.params.id, function (err, event) {
+    Event.findById(req.params.id, function (err, event) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
@@ -230,7 +232,7 @@ router.use(function(req, res, next) {
 router.put('/:eventId/join/:waiterId', function(req, res) {
     var causes = [];
 
-    mongoose.model('User').findById(req.params.waiterId, function (err, user) {
+    User.findById(req.params.waiterId, function (err, user) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
@@ -240,7 +242,7 @@ router.put('/:eventId/join/:waiterId', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Join event failed', causes: causes});
             return ;
         }
-        mongoose.model('Event').findById(req.params.eventId, function (err, event) {
+        Event.findById(req.params.eventId, function (err, event) {
             if (err) {
                 res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;
@@ -282,7 +284,7 @@ router.put('/:eventId/join/:waiterId', function(req, res) {
 router.put('/:eventId/leave/:waiterId', function(req, res) {
     var causes = [];
 
-    mongoose.model('User').findById(req.params.waiterId, function (err, user) {
+    User.findById(req.params.waiterId, function (err, user) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
@@ -292,7 +294,7 @@ router.put('/:eventId/leave/:waiterId', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Leave event failed', causes: causes});
             return ;
         }
-        mongoose.model('Event').findById(req.params.eventId, function (err, event) {
+        Event.findById(req.params.eventId, function (err, event) {
             if (err) {
                 res.status(httpCodes.badRequest).jsend.error({message: err.message});
                 return ;

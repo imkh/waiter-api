@@ -1,4 +1,3 @@
-var mongoose = require('mongoose');
 var Transaction = require('./../model/transaction.js');
 
 var transactionService = {};

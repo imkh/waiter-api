@@ -14,6 +14,8 @@ var tokenConfig = config.get('JWT');
 var emailConfig = config.get('email');
 var smtpConfig = config.get('smtp');
 var httpCodes = config.get('httpCodes');
+var User = require('./../model/user');
+
 
 var transporter = nodemailer.createTransport(smtpConfig);
 
@@ -58,7 +60,7 @@ function makeid()
  * Route check available email
  */
 router.get('/available/:email', function(req, res) {
-    mongoose.model('User').findOne({email: req.params.email}, function (err, foundUser) {
+    User.findOne({email: req.params.email}, function (err, foundUser) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -104,7 +106,7 @@ router.post('/register', function(req, res) {
         confirmToken: makeid()
     };
 
-    mongoose.model('User').create(user, function(err, createdUser) {
+    User.create(user, function(err, createdUser) {
         if (err) {
             if (err.errors) {
                 if (err.errors.firstName)
@@ -169,7 +171,7 @@ router.post('/register', function(req, res) {
 router.get('/confirm/:id/token/:confirmToken', function(req, res) {
     var causes = [];
 
-    mongoose.model('User').findById(req.params.id, function (err, user) {
+    User.findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -227,7 +229,7 @@ router.post('/login', function(req, res) {
         return;
     }
 
-    mongoose.model('User').findOne({email: res.req.body.email}, function (err, user) {
+    User.findOne({email: res.req.body.email}, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -275,7 +277,7 @@ router.post('/login', function(req, res) {
 router.put('/:id/logout', function(req, res) {
     var causes = [];
 
-    mongoose.model('User').findById(req.params.id, function (err, user) {
+    User.findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -302,7 +304,7 @@ router.put('/:id/logout', function(req, res) {
  * Route Get All Users
  */
 router.get('/', function(req, res) {
-    mongoose.model('User').find({}, function (err, users) {
+    User.find({}, function (err, users) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -320,7 +322,7 @@ router.get('/', function(req, res) {
 router.param('id', function(req, res, next, id) {
     var causes = [];
 
-    mongoose.model('User').findById(id, function (err, user) {
+    User.findById(id, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -377,7 +379,7 @@ router.use(function(req, res, next) {
 router.get('/:id', function(req, res) {
     var causes = [];
 
-    mongoose.model('User').findById(req.params.id, function (err, user) {
+    User.findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -407,7 +409,7 @@ router.put('/:id/password', function(req, res) {
     var salt = bcrypt.genSaltSync(saltRounds);
     var newPassword = bcrypt.hashSync(res.req.body.newPassword, salt);
 
-    mongoose.model('User').findById(req.params.id, function (err, user) {
+    User.findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
@@ -462,7 +464,7 @@ router.put('/:id/profile', function(req, res) {
         userChange.email = res.req.body.email;
     }
 
-    mongoose.model('User').findById(req.params.id, function (err, user) {
+    User.findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -508,7 +510,7 @@ router.put('/:id/profile', function(req, res) {
 router.delete('/:id/delete', function(req, res) {
     var causes = [];
 
-    mongoose.model('User').findById(req.params.id, function (err, user) {
+    User.findById(req.params.id, function (err, user) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;

@@ -1,6 +1,6 @@
-
-var mongoose = require('mongoose');
-
+var Event = require('./../model/event');
+var User = require('./../model/user');
+var History = require('./../model/history');
 
 var historyService = {};
 
@@ -21,7 +21,7 @@ historyService.addHistory = function(wait) {
     newHistory.price.total = (newHistory.wait.duration / 60) + 9; // 
     newHistory.price.pricebyHours [0, 0, 0];
 
-    mongoose.model('Event').findById(wait.eventId, function (err, event) {
+    Event.findById(wait.eventId, function (err, event) {
         if (err) {
 	    console.log(err.message);
 	    return ;
@@ -30,7 +30,7 @@ historyService.addHistory = function(wait) {
 	newHistory.event.address = event.address;
 	newHistory.event.location = event.location;
 
-	mongoose.model('User').findById(wait.clientId, function (err, client) {
+	User.findById(wait.clientId, function (err, client) {
             if (err) {
 		console.log(err.message);
 		return ;
@@ -40,7 +40,7 @@ historyService.addHistory = function(wait) {
 	    newHistory.client.lastName = client.lastName;
 	    newHistory.client.email = client.email;
 	    
-	    mongoose.model('User').find().where('_id').in(wait.waitersIds).exec(function (err, waiters) {
+	    User.find().where('_id').in(wait.waitersIds).exec(function (err, waiters) {
 		if (err) {
 		    console.log(err.message);
 		    return ;
@@ -54,7 +54,7 @@ historyService.addHistory = function(wait) {
 		    newHistory.waiters.push(waiter);
 		}
 
-		mongoose.model('History').create(newHistory, function(err, history) {
+		History.create(newHistory, function(err, history) {
 		    if (err) {
 			console.log(err.message);
 			return ;

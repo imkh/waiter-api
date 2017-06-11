@@ -10,6 +10,8 @@ var config = require('config');
 var jwt = require('jsonwebtoken');
 var jsend = require('jsend');
 
+var History = require('./../model/history');
+
 var httpCodes = config.get('httpCodes');
 var zoomDistanceRatio = config.get('zoomDistanceRatio');
 
@@ -42,7 +44,7 @@ router.use(bodyParser.urlencoded({
 router.param('id', function(req, res, next, id) {
     var causes = [];
 
-    mongoose.model('History').findById(id, function (err, history) {
+    History.findById(id, function (err, history) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -62,7 +64,7 @@ router.param('id', function(req, res, next, id) {
 router.get('/:id', function(req, res) {
     var causes = [];
 
-    mongoose.model('History').findById(req.params.id, function (err, history) {
+    History.findById(req.params.id, function (err, history) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -80,7 +82,7 @@ router.get('/:id', function(req, res) {
  * Route Get All Histories
  */
 router.get('/', function(req, res) {
-    mongoose.model('History').find({}, function (err, histories) {
+    History.find({}, function (err, histories) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
