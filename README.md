@@ -1,3 +1,7 @@
+[![Build Status](https://img.shields.io/travis/waiter-project/waiter-api.svg?style=flat-square&branch=develop)](https://img.shields.io/travis/waiter-project/waiter-api)
+
+
+
 # Waiter API
 
 This repository contains the source code for the Waiter API.
