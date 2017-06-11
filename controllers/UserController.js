@@ -9,14 +9,15 @@ var config = require('config');
 var nodemailer = require('nodemailer');
 var jsend = require('jsend');
 
+var User = require('./../models/User');
+
 var bcryptConfig = config.get('bcrypt');
 var tokenConfig = config.get('JWT');
 var emailConfig = config.get('email');
 var smtpConfig = config.get('smtp');
 var httpCodes = config.get('httpCodes');
-var User = require('./../models/User');
 
-
+//TODO:: this instance must be placed in route where it is call
 var transporter = nodemailer.createTransport(smtpConfig);
 
 const saltRounds = bcryptConfig.saltRounds;

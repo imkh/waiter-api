@@ -1,6 +1,3 @@
-/**
- * Created by quentinhuang on 03/02/2017.
- */
 var express = require('express');
 var router = express.Router();
 var bodyParser = require('body-parser');
@@ -10,13 +7,13 @@ var config = require('config');
 var jwt = require('jsonwebtoken');
 var jsend = require('jsend');
 
-var httpCodes = config.get('httpCodes');
-var zoomDistanceRatio = config.get('zoomDistanceRatio');
-
-var tokenConfig = config.get('JWT');
-
 var User = require('./../models/User');
 var Event = require('./../models/Event');
+
+var httpCodes = config.get('httpCodes');
+var zoomDistanceRatio = config.get('zoomDistanceRatio');
+var tokenConfig = config.get('JWT');
+
 const tokenSecret = tokenConfig.tokenSecret;
 
 //@TODO remove callback hell !!!

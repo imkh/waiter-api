@@ -1,6 +1,3 @@
-/**
- * Created by quentinhuang on 03/02/2017.
- */
 var express = require('express');
 var router = express.Router();
 var bodyParser = require('body-parser');
@@ -14,7 +11,6 @@ var History = require('./../models/History');
 
 var httpCodes = config.get('httpCodes');
 var zoomDistanceRatio = config.get('zoomDistanceRatio');
-
 var tokenConfig = config.get('JWT');
 
 const tokenSecret = tokenConfig.tokenSecret;
