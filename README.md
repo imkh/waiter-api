@@ -51,5 +51,8 @@ Create the database, run the following command in mongo shell:
 npm install
 
 # run application at localhost:5000
-node app.js
+npm start
+
+# test application API 
+npm test
 ```
