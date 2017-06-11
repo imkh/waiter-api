@@ -1,5 +1,5 @@
 var User = require('./../models/User');
-
+var https = require('https');
 
 var headers = {
     "Content-Type": "application/json; charset=utf-8",
@@ -34,7 +34,7 @@ notificationService.sendNotifications = function(usersIds, message) {
             include_player_ids: devices
         };
 
-        var https = require('https');
+
         var req = https.request(options, function(res) {
             res.on('data', function(data) {
                 console.log("Response:");
@@ -49,9 +49,7 @@ notificationService.sendNotifications = function(usersIds, message) {
 
         req.write(JSON.stringify(data));
         req.end();
-
     });
-
 };
 
 module.exports = notificationService;
