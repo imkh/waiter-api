@@ -30,9 +30,9 @@
     "jsend": "^1.0.2",
     "jsonwebtoken": "^7.2.1",
     "method-override": "^2.3.7",
-    "mongoose": "^4.7.7",
+    "mongoose": "^4.10.5",
     "mongoose-beautiful-unique-validation": "^5.1.1",
-    "nodemailer": "^2.7.2",
+    "nodemailer": "^4.0.1",
     "socket.io": "^1.7.3",
     "xo": "^0.17.1"
   },
