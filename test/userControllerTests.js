@@ -60,7 +60,8 @@ describe('User', function(){
                 lastName: 'World',
                 email: 'hello@world.com',
                 password: 'helloworld',
-                type: 0
+                type: 0,
+                deviceId: 'deviceId'
             };
 
             userFirstName = data.firstName;
@@ -97,10 +98,27 @@ describe('User', function(){
             lastName: '',
             email: '',
             password: '',
-            type: 0
+            type: 0,
+            deviceId: ''
         };
 
+        it('it should fail to register (device required)', function(done){
+            chai.request(app)
+                .post('/user/register')
+                .send(data)
+                .end(function(err, res)  {
+                    expect(res).to.have.status(httpCodes.badRequest);
+                    expect(res.body).to.have.property('status').and.to.equal('fail');
+                    expect(res.body).to.have.property('data');
+                    expect(res.body.data).to.have.property('message').and.to.equal('User registration failed');
+                    expect(res.body.data).to.have.property('causes');
+                    expect(res.body.data.causes[0]).to.equal('A device is required');
+                    done();
+                });
+        });
+
         it('it should fail to register (password required)', function(done){
+            data.deviceId = 'deviceId';
             chai.request(app)
                 .post('/user/register')
                 .send(data)
@@ -274,7 +292,8 @@ describe('User', function(){
         it('it should LOGIN the user `hello@world.com` and get an auth token', function(done){
             var data = {
                 email: 'hello@world.com',
-                password: 'helloworld'
+                password: 'helloworld',
+                deviceId: 'deviceId'
             };
 
             chai.request(app)
@@ -300,7 +319,8 @@ describe('User', function(){
     describe('/LOGIN user', function(){
         var data = {
             email: '',
-            password: ''
+            password: '',
+            deviceId: 'deviceId'
         };
 
         it('it should fail to login (email and password required)', function(done){
@@ -443,7 +463,8 @@ describe('User', function(){
         it('it should LOGIN the user with its new IDs', function(done){
             var data = {
                 email: userEmail,
-                password: userPassword
+                password: userPassword,
+                deviceId: 'deviceId'
             };
 
             chai.request(app)
@@ -468,14 +489,8 @@ describe('User', function(){
      */
     describe('/LOGOUT user', function(){
         it('it should LOGOUT the user', function(done){
-            var data = {
-                email: userEmail,
-                password: userPassword
-            };
-
             chai.request(app)
-                .post('/user/login')
-                .send(data)
+                .put('/user/' + userId + '/logout')
                 .end(function(err, res){
                     expect(res).to.have.status(httpCodes.ok);
                     expect(res.body).to.have.property('status').and.to.equal('success');
@@ -491,7 +506,6 @@ describe('User', function(){
      */
     describe('/DELETE user', function(){
         it('it should DELETE a user', function(done){
-
             var data = {
                 password: userPassword
             };
