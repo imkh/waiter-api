@@ -27,6 +27,8 @@ var userPassword;
 describe('User', function(){
     //Before each test we empty the database
 
+    this.timeout(15000);
+
     before(function (done){
         User.remove({}, function (err){
             done();
