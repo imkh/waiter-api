@@ -16,6 +16,10 @@ The API documentation can be found here: http://docs.waiterapi.apiary.io/
 
 There might be problems with installation depending on your computer, in that case, good luck.
 
+### Forever
+
+'npm install forever -g'
+
 ### Homebrew
 
 `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
