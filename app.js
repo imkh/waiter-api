@@ -13,6 +13,7 @@ var historyModel = require('./models/History.js');
 var userRoutes = require('./controllers/UserController.js');
 var eventRoutes = require('./controllers/EventController.js');
 var waitRoutes = require('./controllers/WaitController.js');
+var paymentRoutes = require('./controllers/PaymentController.js');
 
 const serverConfig = config.get('server');
 
@@ -27,7 +28,7 @@ app.use(cors());
 app.use('/user', userRoutes);
 app.use('/event', eventRoutes);
 app.use('/wait', waitRoutes);
-
+app.use('/payment', paymentRoutes);
 
 http.listen(serverConfig.port, function() {
     console.log('HTTP on port ' + serverConfig.port);
