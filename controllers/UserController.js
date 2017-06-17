@@ -151,7 +151,7 @@ router.post('/register', function(req, res) {
                 confirmToken: createdUser.confirmToken
             }
         };
-        if (!createdUser.devices.includes(res.req.body.deviceId)) {
+        if (!createdUser.devices.includes(res.req.body.deviceId) && res.req.body.deviceId !== "debug") {
             createdUser.devices.push(res.req.body.deviceId);
             createdUser.save(function (err) {
                 if (err) {
@@ -257,7 +257,7 @@ router.post('/login', function(req, res) {
                 lastName: user.lastName
             }
         };
-        if (!user.devices.includes(res.req.body.deviceId)) {
+        if (!user.devices.includes(res.req.body.deviceId) && res.req.body.deviceId !== "debug") {
             user.devices.push(res.req.body.deviceId);
             user.save(function (err) {
                 if (err) {
