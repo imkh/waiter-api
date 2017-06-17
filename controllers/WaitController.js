@@ -20,6 +20,7 @@ var transactionService = require('./../services/transactionService.js');
 var bcryptConfig = config.get('bcrypt');
 var tokenConfig = config.get('JWT');
 var jsend = require('jsend');
+var httpCodes = config.get('httpCodes');
 
 const saltRounds = bcryptConfig.saltRounds;
 const tokenSecret = tokenConfig.tokenSecret;
