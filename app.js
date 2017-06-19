@@ -1,4 +1,5 @@
-var app = require('./express');
+
+var app = require('./express.js');
 var cors = require('cors');
 var config = require('config');
 var http = require('./http');

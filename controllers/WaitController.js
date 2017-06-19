@@ -420,7 +420,7 @@ router.put('/:id/generate-code', function(req, res) {
         var salt = bcrypt.genSaltSync(saltRounds);
 
         wait.confirmationCode = bcrypt.hashSync(code, salt);
-        wait.save(function (err) {
+        wait.update(function (err) {
             if (err) {
 		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
@@ -460,7 +460,7 @@ router.put('/:id/validate', function(req, res) {
 
         // TODO:: cmake transaction
 
-        wait.save(function (err) {
+        wait.update(function (err) {
             if (err) {
 		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
