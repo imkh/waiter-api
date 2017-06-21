@@ -84,16 +84,16 @@ router.get('/socketTest', function(req, res) {
 
 router.get('/:id', function(req, res) {
     var causes = [];
-    
+
     Wait.findById(req.id, function (err, wait) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
 
         if (event === null) {
-	    causes.push('User not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Get user failed', causes: causes});
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get user failed', causes: causes});
             return ;
         }
         res.jsend.success(wait);
@@ -104,7 +104,7 @@ router.get('/:id', function(req, res) {
 router.get('/', function(req, res) {
     Wait.find({}, function (err, waits) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         res.jsend.success(waits);
@@ -141,22 +141,22 @@ router.post('/', function(req, res) {
 
     User.findById(userId, function(err, user) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (user === null) {
-	    causes.push('User not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Get user failed', causes: causes});
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get user failed', causes: causes});
             return ;
         }
         Event.findById(eventId, function(err, event) {
             if (err) {
-		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+                res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
             if (event === null) {
-		causes.push('Event not found');
-		res.status(httpCodes.notFound).jsend.fail({message: 'Get event failed', causes: causes});
+                causes.push('Event not found');
+                res.status(httpCodes.notFound).jsend.fail({message: 'Get event failed', causes: causes});
                 return ;
             }
             if (event.listOfWaiters.length < numberOfWaiters) {
@@ -189,7 +189,7 @@ router.post('/', function(req, res) {
                 }
                 event.save(function(err) {
                     if (err) {
-			res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+                        res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                         return ;
                     }
 
@@ -294,15 +294,15 @@ router.post('/', function(req, res) {
 router.put('/:id/queue-start', function(req, res) {
     var waiterId = res.req.body.waiterId;
     var causes = [];
-    
+
     Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'created'}, function(err, wait) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (wait === null) {
-	    causes.push('Wait not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
+            causes.push('Wait not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
 
             return ;
         }
@@ -319,13 +319,13 @@ router.put('/:id/queue-start', function(req, res) {
             }
             wait.nresponses = [];
             wait.state = 'queue-start';
-	    wait.queueStart = Date.now;
+            wait.queueStart = Date.now;
 //	    io.emit('waiter message', "queue started");
         }
 
         wait.save(function (err) {
             if (err) {
-		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+                res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
             if (wait.state === 'created' && wait.waitersIds.length > 1 && wait.nresponses.length < wait.waitersIds.length) {
@@ -339,7 +339,7 @@ router.put('/:id/queue-start', function(req, res) {
             }
 
 //	    io.emit('waiter message', wait.nresponses.length + "/" + wait.waitersIds.length + " in state of queue-start");
-	    res.jsend.success({wait: wait});
+            res.jsend.success({wait: wait});
         });
 
     });
@@ -348,22 +348,22 @@ router.put('/:id/queue-start', function(req, res) {
 router.put('/:id/queue-done', function(req, res) {
     var waiterId = res.req.body.waiterId;
     var causes = [];
-    
+
     Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue-start'}, function(err, wait) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (wait === null) {
-	    causes.push('Wait not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
+            causes.push('Wait not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
         }
 
 
         var devices = wait.waitersIds.slice();
-	devices.push(wait.clientId);
-	
+        devices.push(wait.clientId);
+
         wait.nresponses.push(waiterId);
         if (wait.nresponses.length === wait.waitersIds.length) {
             if (wait.waitersIds.length > 1) {
@@ -371,15 +371,15 @@ router.put('/:id/queue-done', function(req, res) {
             } else {
                 notificationService.sendNotifications(devices, "Your waiter has finished his wait at " + wait.eventName);
             }
-	    
+
             wait.nresponses = [];
             wait.state = 'queue-done';
-	    wait.queueEnd = Date.now;
+            wait.queueEnd = Date.now;
         }
 
         wait.save(function (err) {
             if (err) {
-		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+                res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
             if (wait.state === 'queue-start' && wait.waitersIds.length > 1 && wait.nresponses.length < wait.waitersIds.length) {
@@ -392,9 +392,9 @@ router.put('/:id/queue-done', function(req, res) {
                 notificationService.sendNotifications(devices, message);
             }
 
-	    
+
             // TODO:: send notifications
-	    res.jsend.success({wait: wait});
+            res.jsend.success({wait: wait});
         });
 
     });
@@ -404,15 +404,15 @@ router.put('/:id/queue-done', function(req, res) {
 router.put('/:id/generate-code', function(req, res) {
     var clientId = res.req.body.clientId;
     var causes = [];
-    
+
     Wait.findOne({_id: req.id, clientId: clientId, state: 'queue-done', confirmationCode: null}, function(err, wait) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (wait === null) {
-	    causes.push('Wait not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
+            causes.push('Wait not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
         }
 
@@ -422,10 +422,10 @@ router.put('/:id/generate-code', function(req, res) {
         wait.confirmationCode = bcrypt.hashSync(code, salt);
         wait.update(function (err) {
             if (err) {
-		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+                res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
-	    res.jsend.success({code: code});
+            res.jsend.success({code: code});
         });
     });
 });
@@ -434,20 +434,20 @@ router.put('/:id/validate', function(req, res) {
     var waiterId = res.req.body.waiterId;
     var code = res.req.body.code;
     var causes = [];
-    
+
     Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue done', confirmationCode: { $ne: null }}, function(err, wait) {
         if (err) {
-	    res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
         if (wait === null) {
-	    causes.push('Wait not found');
-	    res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
+            causes.push('Wait not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
         }
         if (!bcrypt.compareSync(code, wait.confirmationCode)) {
-	    causes.push('Codes does not match');
-	    res.status(httpCodes.internalServerError).jsend.fail({message: 'Get wait failed', causes: causes});
+            causes.push('Codes does not match');
+            res.status(httpCodes.internalServerError).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
         }
 
@@ -462,12 +462,12 @@ router.put('/:id/validate', function(req, res) {
 
         wait.update(function (err) {
             if (err) {
-		res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+                res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
             historyService.addHistory(wait);
-	    transactionService.makeTransactionsForAWait(wait);
-	    res.jsend.success({wait: wait});
+            transactionService.makeTransactionsForAWait(wait);
+            res.jsend.success({wait: wait});
         });
     });
 });
