@@ -187,7 +187,7 @@ router.post('/', function(req, res) {
                     res.status(httpCodes.badRequest).jsend.error({message: 'Create wait failed', causes: causes});
                     return ;
                 }
-                event.save(function(err) {
+                event.update(function(err) {
                     if (err) {
                         res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                         return ;
