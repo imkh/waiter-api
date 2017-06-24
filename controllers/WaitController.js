@@ -209,6 +209,7 @@ router.post('/', function(req, res) {
                 clientId: userId,
                 eventId: eventId,
                 eventName: event.name,
+                eventLocation: event.location,
                 nresponses: [],
                 waitersIds: []
             };
