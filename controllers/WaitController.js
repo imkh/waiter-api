@@ -123,8 +123,6 @@ router.get('/', function(req, res) {
 router.get('/client/:clientId', function(req, res) {
     var causes = [];
 
-    console.log(req.params.clientId);
-
     Wait.findOne({clientId: new ObjectId(req.params.clientId)}, function (err, wait) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
