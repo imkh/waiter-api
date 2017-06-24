@@ -3,6 +3,7 @@ var router = express.Router();
 var bodyParser = require('body-parser');
 var bcrypt = require('bcryptjs');
 var mongoose = require('mongoose');
+var ObjectId = require('mongoose').Types.ObjectId;
 var methodOverride = require('method-override');
 var config = require('config');
 var jwt = require('jsonwebtoken');
@@ -115,6 +116,28 @@ router.get('/', function(req, res) {
         res.jsend.success({waits: waits});
     }).select('-__v');
 });
+
+/**
+ * Get One Wait (by client ID)
+ */
+router.get('/client/:clientId', function(req, res) {
+    var causes = [];
+
+    console.log(req.params.clientId);
+
+    Wait.findOne({clientId: new ObjectId(req.params.clientId)}, function (err, wait) {
+        if (err) {
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            return ;
+        }
+
+        if (wait === null) {
+            causes.push('Wait not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
+            return ;
+        }
+        res.jsend.success({wait: wait});
+    }).select('-__v');
 });
 
 //middleware start
