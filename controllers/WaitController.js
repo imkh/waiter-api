@@ -82,33 +82,39 @@ router.get('/socketTest', function(req, res) {
     res.status(200).jsend.success({});
 });
 
+/**
+ * Get One Wait (by ID)
+ */
 router.get('/:id', function(req, res) {
     var causes = [];
 
-    Wait.findById(req.id, function (err, wait) {
+    Wait.findById(req.params.id, function (err, wait) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
 
-        if (event === null) {
-            causes.push('User not found');
-            res.status(httpCodes.notFound).jsend.fail({message: 'Get user failed', causes: causes});
+        if (wait === null) {
+            causes.push('Wait not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
         }
-        res.jsend.success(wait);
-    });
+        res.jsend.success({wait: wait});
+    }).select('-__v');
 });
 
-
+/**
+ * Get All Waits
+ */
 router.get('/', function(req, res) {
     Wait.find({}, function (err, waits) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
-        res.jsend.success(waits);
-    });
+        res.jsend.success({waits: waits});
+    }).select('-__v');
+});
 });
 
 //middleware start
