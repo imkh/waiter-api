@@ -118,12 +118,24 @@ router.get('/', function(req, res) {
 });
 
 /**
- * Get One Wait (by client ID)
+ * Get One Wait (by user ID, client or waiter)
  */
-router.get('/client/:clientId', function(req, res) {
+router.get('/user/:userId', function(req, res) {
     var causes = [];
 
-    Wait.findOne({clientId: new ObjectId(req.params.clientId)}, function (err, wait) {
+    var query = {};
+    var userType = req.body.token || req.query.token || req.headers['x-user-type'];
+    if (userType == "client") {
+        query = {clientId: new ObjectId(req.params.userId)};
+    } else if (userType == "waiter") {
+        query = {waitersIds: new ObjectId(req.params.userId)};
+    } else {
+        causes.push('A user type in header is required');
+        res.status(httpCodes.badRequest).jsend.fail({message: 'Get wait failed', causes: causes});
+        return ;
+    }
+
+    Wait.findOne(query, function (err, wait) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
