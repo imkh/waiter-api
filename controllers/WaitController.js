@@ -485,7 +485,7 @@ router.put('/:id/validate', function(req, res) {
     var code = res.req.body.code;
     var causes = [];
 
-    Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue done', confirmationCode: { $ne: null }}, function(err, wait) {
+    Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue-done', confirmationCode: { $ne: null }}, function(err, wait) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
