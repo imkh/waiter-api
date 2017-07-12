@@ -331,8 +331,8 @@ router.post('/', function(req, res) {
  *     });
  * });*/
 
-router.put('/:id/queue-start', function(req, res) {
-    var waiterId = res.req.body.waiterId;
+router.put('/:id/queue-start/:waiterId', function(req, res) {
+    var waiterId = req.params.waiterId;
     var causes = [];
 
     Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'created'}, function(err, wait) {
@@ -349,6 +349,11 @@ router.put('/:id/queue-start', function(req, res) {
 
         var devices = wait.waitersIds.slice();
         devices.push(wait.clientId);
+        // Remove waiterId's device
+        var index = devices.map(function(x) {return x.toString(); }).indexOf(waiterId);
+        if (index > -1) {
+            devices.splice(index, 1);
+        }
 
         wait.nresponses.push(waiterId);
         if (wait.nresponses.length === wait.waitersIds.length) {
@@ -359,7 +364,7 @@ router.put('/:id/queue-start', function(req, res) {
             }
             wait.nresponses = [];
             wait.state = 'queue-start';
-            wait.queueStart = Date.now;
+            wait.queueStart = Date.now();
 //	    io.emit('waiter message', "queue started");
         }
 
@@ -385,8 +390,8 @@ router.put('/:id/queue-start', function(req, res) {
     });
 });
 
-router.put('/:id/queue-done', function(req, res) {
-    var waiterId = res.req.body.waiterId;
+router.put('/:id/queue-done/:waiterId', function(req, res) {
+    var waiterId = req.params.waiterId;
     var causes = [];
 
     Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue-start'}, function(err, wait) {
@@ -403,6 +408,11 @@ router.put('/:id/queue-done', function(req, res) {
 
         var devices = wait.waitersIds.slice();
         devices.push(wait.clientId);
+        // Remove waiterId's device
+        var index = devices.map(function(x) {return x.toString(); }).indexOf(waiterId);
+        if (index > -1) {
+            devices.splice(index, 1);
+        }
 
         wait.nresponses.push(waiterId);
         if (wait.nresponses.length === wait.waitersIds.length) {
@@ -414,7 +424,7 @@ router.put('/:id/queue-done', function(req, res) {
 
             wait.nresponses = [];
             wait.state = 'queue-done';
-            wait.queueEnd = Date.now;
+            wait.queueEnd = Date.now();
         }
 
         wait.save(function (err) {
