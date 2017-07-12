@@ -1,9 +1,9 @@
-
 var app = require('./express.js');
 var cors = require('cors');
 var config = require('config');
 var http = require('./http');
 var dotenv = require('dotenv');
+
 
 var db = require('./models/Database.js');
 var userModel = require('./models/User.js');
@@ -21,11 +21,13 @@ const serverConfig = config.get('server');
 // There's no need to check if .env exists, dotenv will check this // for you. It will show a small warning which can be disabled when // using this in production.
 dotenv.load();
 
+app.use(cors());
+
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
 });
 
-app.use(cors());
+
 app.use('/user', userRoutes);
 app.use('/event', eventRoutes);
 app.use('/wait', waitRoutes);
