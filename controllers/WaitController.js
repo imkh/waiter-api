@@ -451,8 +451,8 @@ router.put('/:id/queue-done/:waiterId', function(req, res) {
 });
 
 
-router.put('/:id/generate-code', function(req, res) {
-    var clientId = res.req.body.clientId;
+router.put('/:id/generate-code/:clientId', function(req, res) {
+    var clientId = req.params.clientId;
     var causes = [];
 
     Wait.findOne({_id: req.id, clientId: clientId, state: 'queue-done', confirmationCode: null}, function(err, wait) {
