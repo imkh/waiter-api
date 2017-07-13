@@ -496,7 +496,7 @@ router.put('/:id/validate', function(req, res) {
             return ;
         }
         if (!bcrypt.compareSync(code, wait.confirmationCode)) {
-            causes.push('Codes does not match');
+            causes.push('Invalid code');
             res.status(httpCodes.internalServerError).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
         }
