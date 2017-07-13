@@ -15,6 +15,7 @@ var userRoutes = require('./controllers/UserController.js');
 var eventRoutes = require('./controllers/EventController.js');
 var waitRoutes = require('./controllers/WaitController.js');
 var paymentRoutes = require('./controllers/PaymentController.js');
+var historyRoutes = require('./controllers/HistoryController.js');
 
 const serverConfig = config.get('server');
 
@@ -32,6 +33,7 @@ app.use('/user', userRoutes);
 app.use('/event', eventRoutes);
 app.use('/wait', waitRoutes);
 app.use('/payment', paymentRoutes);
+app.use('/history', historyRoutes);
 
 http.listen(serverConfig.port, function() {
     console.log('HTTP on port ' + serverConfig.port);
