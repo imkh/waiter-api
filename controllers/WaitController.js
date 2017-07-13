@@ -570,8 +570,8 @@ router.put('/:id/validate', function(req, res) {
                 res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
-            /* historyService.addHistory(wait);
-             * transactionService.makeTransactionsForAWait(wait);*/
+            historyService.addHistory(wait);
+            // transactionService.makeTransactionsForAWait(wait);
             res.jsend.success({wait: wait});
         });
     });
