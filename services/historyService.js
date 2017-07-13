@@ -15,11 +15,10 @@ historyService.addHistory = function(wait) {
 
     newHistory.wait.queueStart = wait.queueStart;
     newHistory.wait.queueEnd = wait.queueEnd;
-    newHistory.wait.duration = Math.ceil((Math.abs(wait.queueEnd.getTime()
-						 - wait.queueStart.getTime())) / (1000 * 3600));
+    newHistory.wait.duration = Math.ceil((Math.abs(wait.queueEnd.getTime() - wait.queueStart.getTime())) / (1000 * 3600));
 
     newHistory.price.total = (newHistory.wait.duration / 60) + 9; // 
-    newHistory.price.pricebyHours [0, 0, 0];
+    newHistory.price.pricebyHours = [0, 0, 0];
 
     Event.findById(wait.eventId, function (err, event) {
         if (err) {
@@ -35,17 +34,17 @@ historyService.addHistory = function(wait) {
 		console.log(err.message);
 		return ;
             }
-	    
+
 	    newHistory.client.firstName = client.firstName;
 	    newHistory.client.lastName = client.lastName;
 	    newHistory.client.email = client.email;
-	    
+
 	    User.find().where('_id').in(wait.waitersIds).exec(function (err, waiters) {
 		if (err) {
 		    console.log(err.message);
 		    return ;
 		}
-		for (var i = 0; i != waiters.length; i++) {
+		for (var i = 0; i !== waiters.length; i++) {
 		    var waiter = {};
 
 		    waiter.firstName = waiters[0].firstName;
@@ -61,7 +60,7 @@ historyService.addHistory = function(wait) {
 		    }
 		    console.log("history added");
 		    return ;
-		});	    
+		});
 	    });
 	});
     });
