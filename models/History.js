@@ -4,9 +4,10 @@
 var mongoose = require('mongoose');
 
 var personSchema = new mongoose.Schema({
-	firstName: {type: String, required: true},
-	lastName: {type: String, required: true},
-	email: {type: String }
+    _id: Schema.Types.ObjectId,
+    firstName: {type: String, required: true},
+    lastName: {type: String, required: true},
+    email: {type: String }
 });
 
 var historySchema = new mongoose.Schema({

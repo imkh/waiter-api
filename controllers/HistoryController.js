@@ -93,7 +93,7 @@ router.get('/', function(req, res) {
 router.delete('/:id/delete', function(req, res) {
     var causes = [];
 
-    mongoose.model('History').findById(req.params.id, function (err, history) {
+    History..findById(req.params.id, function (err, history) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;
@@ -112,6 +112,42 @@ router.delete('/:id/delete', function(req, res) {
             res.jsend.success({message: 'History successfully deleted'});
         });
     });
+});
+
+router.get('/user/:userId', function(req, res) {
+    var causes = [];
+
+    var query = {};
+    var userType = req.body.token || req.query.token || req.headers['x-user-type'];
+    if (userType == "client") {
+        query.client._id = new ObjectId(req.params.userId);
+    } else if (userType == "waiter") {
+	query = {
+	    waiters: {
+		$elemMatch: {
+		    _id: new ObjectId(req.params.userId)
+		}
+	    }
+	};
+    } else {
+        causes.push('A user type in header is required');
+        res.status(httpCodes.badRequest).jsend.fail({message: 'Get history failed', causes: causes});
+        return ;
+    }
+
+    Wait.find(query, function (err, histories) {
+        if (err) {
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            return ;
+        }
+
+        if (wait === null) {
+            causes.push('Histories not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get histories failed', causes: causes});
+            return ;
+        }
+        res.jsend.success({history: histories});
+    }).select('-__v');
 });
 
 module.exports = router;
