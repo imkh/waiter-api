@@ -467,9 +467,10 @@ router.put('/:id/generate-code/:clientId', function(req, res) {
         }
 
         var code = makeid();
-        var salt = bcrypt.genSaltSync(saltRounds);
+        /* var salt = bcrypt.genSaltSync(saltRounds);*/
 
-        wait.confirmationCode = bcrypt.hashSync(code, salt);
+        /* wait.confirmationCode = bcrypt.hashSync(code, salt);*/
+	wait.confirmationCode = code;
         wait.save(function (err) {
             if (err) {
                 res.status(httpCodes.internalServerError).jsend.error({message: err.message});
@@ -495,7 +496,7 @@ router.put('/:id/validate', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
         }
-        if (!bcrypt.compareSync(code, wait.confirmationCode)) {
+        if (code.valueOf() !== wait.confirmationCode.valueOf()) {
             causes.push('Invalid code');
             res.status(httpCodes.internalServerError).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
