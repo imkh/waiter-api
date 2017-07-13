@@ -93,7 +93,7 @@ router.get('/', function(req, res) {
 router.delete('/:id/delete', function(req, res) {
     var causes = [];
 
-    History..findById(req.params.id, function (err, history) {
+    History.findById(req.params.id, function (err, history) {
         if (err) {
             res.status(httpCodes.badRequest).jsend.error({message: err.message});
             return ;

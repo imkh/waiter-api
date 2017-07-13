@@ -581,7 +581,7 @@ router.delete('/:id/cancel/:userId', function(req, res) {
     var causes = [];
 
     var query = {
-        _id: req.params.id
+        _id: req.params.id,
         state : {
             $in : ['created']
         }
