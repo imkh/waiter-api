@@ -6,11 +6,11 @@ var historyService = {};
 
 historyService.addHistory = function(wait) {
     var newHistory = {
-	event: {},
-	client: {},
-	waiters: [],
-	wait: {},
-	price: {}
+        event: {},
+        client: {},
+        waiters: [],
+        wait: {},
+        price: {}
     };
 
     newHistory.wait.queueStart = wait.queueStart;
@@ -22,47 +22,47 @@ historyService.addHistory = function(wait) {
 
     Event.findById(wait.eventId, function (err, event) {
         if (err) {
-	    console.log(err.message);
-	    return ;
+            console.log(err.message);
+            return ;
         }
-	newHistory.event.name = event.name;
-	newHistory.event.address = event.address;
-	newHistory.event.location = event.location;
+        newHistory.event.name = event.name;
+        newHistory.event.address = event.address;
+        newHistory.event.location = event.location;
 
-	User.findById(wait.clientId, function (err, client) {
+        User.findById(wait.clientId, function (err, client) {
             if (err) {
-		console.log(err.message);
-		return ;
+                console.log(err.message);
+                return ;
             }
 
-	    newHistory.client.firstName = client.firstName;
-	    newHistory.client.lastName = client.lastName;
-	    newHistory.client.email = client.email;
+            newHistory.client.firstName = client.firstName;
+            newHistory.client.lastName = client.lastName;
+            newHistory.client.email = client.email;
 
-	    User.find().where('_id').in(wait.waitersIds).exec(function (err, waiters) {
-		if (err) {
-		    console.log(err.message);
-		    return ;
-		}
-		for (var i = 0; i !== waiters.length; i++) {
-		    var waiter = {};
+            User.find().where('_id').in(wait.waitersIds).exec(function (err, waiters) {
+                if (err) {
+                    console.log(err.message);
+                    return ;
+                }
+                for (var i = 0; i !== waiters.length; i++) {
+                    var waiter = {};
 
-		    waiter.firstName = waiters[0].firstName;
-		    waiter.lastName = waiters[0].lastName;
-		    waiter.email = waiters[0].email;
-		    newHistory.waiters.push(waiter);
-		}
+                    waiter.firstName = waiters[0].firstName;
+                    waiter.lastName = waiters[0].lastName;
+                    waiter.email = waiters[0].email;
+                    newHistory.waiters.push(waiter);
+                }
 
-		History.create(newHistory, function(err, history) {
-		    if (err) {
-			console.log(err.message);
-			return ;
-		    }
-		    console.log("history added");
-		    return ;
-		});
-	    });
-	});
+                History.create(newHistory, function(err, history) {
+                    if (err) {
+                        console.log(err.message);
+                        return ;
+                    }
+                    console.log("history added");
+                    return ;
+                });
+            });
+        });
     });
 };
 
