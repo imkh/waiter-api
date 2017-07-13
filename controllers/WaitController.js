@@ -486,7 +486,7 @@ router.put('/:id/validate', function(req, res) {
     var code = res.req.body.code;
     var causes = [];
 
-    Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue-done', confirmationCode: { $ne: null }}, function(err, wait) {
+    Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue-done'}, function(err, wait) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -501,13 +501,13 @@ router.put('/:id/validate', function(req, res) {
             res.status(httpCodes.internalServerError).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
         }
-
+	
         wait.nresponses.push(waiterId);
         if (wait.nresponses.length == wait.waitersIds.length) {
             wait.nresponses = [];
             wait.state = 'paid';
         }
-
+	
 	// TODO:: remettre les waiter dans la queue
         // TODO:: cmake transaction
 
@@ -516,8 +516,8 @@ router.put('/:id/validate', function(req, res) {
                 res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
-            historyService.addHistory(wait);
-            transactionService.makeTransactionsForAWait(wait);
+            /* historyService.addHistory(wait);
+	     * transactionService.makeTransactionsForAWait(wait);*/
             res.jsend.success({wait: wait});
         });
     });
