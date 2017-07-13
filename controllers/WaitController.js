@@ -577,7 +577,7 @@ router.put('/:id/validate', function(req, res) {
     });
 });
 
-router.get('/:id/conflict', function(req, res) {
+router.put('/:id/conflict/:userId', function(req, res) {
     var causes = [];
 
     var query = {
