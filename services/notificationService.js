@@ -31,7 +31,8 @@ notificationService.sendNotifications = function(usersIds, message) {
         var data = {
             app_id: process.env.ONESIGNAL_APP_ID,
             contents: {"en": message},
-            include_player_ids: devices
+            include_player_ids: devices,
+            priority: 10
         };
 
 
