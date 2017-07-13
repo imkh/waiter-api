@@ -36,9 +36,9 @@ io.on('connection', function(socket){
 function makeid()
 {
     var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    for(var i = 0; i < 20; i++ )
+    for(var i = 0; i < 5; i++)
         text += possible.charAt(Math.floor(Math.random() * possible.length));
 
     return text;
@@ -451,11 +451,11 @@ router.put('/:id/queue-done/:waiterId', function(req, res) {
 });
 
 
-router.put('/:id/generate-code', function(req, res) {
-    var clientId = res.req.body.clientId;
+router.put('/:id/generate-code/:clientId', function(req, res) {
+    var clientId = req.params.clientId;
     var causes = [];
 
-    Wait.findOne({_id: req.id, clientId: clientId, state: 'queue-done', confirmationCode: null}, function(err, wait) {
+    Wait.findOne({_id: req.id, clientId: clientId, state: 'queue-done'}, function(err, wait) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -470,7 +470,7 @@ router.put('/:id/generate-code', function(req, res) {
         var salt = bcrypt.genSaltSync(saltRounds);
 
         wait.confirmationCode = bcrypt.hashSync(code, salt);
-        wait.update(function (err) {
+        wait.save(function (err) {
             if (err) {
                 res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
@@ -485,7 +485,7 @@ router.put('/:id/validate', function(req, res) {
     var code = res.req.body.code;
     var causes = [];
 
-    Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue done', confirmationCode: { $ne: null }}, function(err, wait) {
+    Wait.findOne({_id: req.id, waitersIds: waiterId, state: 'queue-done', confirmationCode: { $ne: null }}, function(err, wait) {
         if (err) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
@@ -496,7 +496,7 @@ router.put('/:id/validate', function(req, res) {
             return ;
         }
         if (!bcrypt.compareSync(code, wait.confirmationCode)) {
-            causes.push('Codes does not match');
+            causes.push('Invalid code');
             res.status(httpCodes.internalServerError).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
         }
@@ -510,7 +510,7 @@ router.put('/:id/validate', function(req, res) {
 	// TODO:: remettre les waiter dans la queue
         // TODO:: cmake transaction
 
-        wait.update(function (err) {
+        wait.save(function (err) {
             if (err) {
                 res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
