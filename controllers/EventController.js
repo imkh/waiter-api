@@ -251,7 +251,7 @@ router.put('/:eventId/join/:waiterId', function(req, res) {
                 return ;
             }
             if (user.waiterCurrentEvent !== null) {
-                causes.push('You have already joined an event');
+                causes.push('You have currently a wait in progress');
                 res.status(httpCodes.conflict).jsend.fail({message: 'Join event failed', causes: causes});
                 return ;
             }
