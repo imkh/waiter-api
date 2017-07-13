@@ -261,16 +261,6 @@ router.post('/', function(req, res) {
                 newWait.waitersIds.push(event.listOfWaiters.shift());
             }
 
-	    var query = {
-		id : {
-		    $in : newWait.waitersIds
-		}
-	    };
-	    
-	    User.update(query, { $set: { waiterCurrentEvent: null }}, function () {
-		return ;
-	    });
-
             Wait.create(newWait, function(err, wait) {
                 if (err) {
                     if (err.errors) {
@@ -560,8 +550,18 @@ router.put('/:id/validate', function(req, res) {
             wait.nresponses = [];
             wait.state = 'paid';
         }
-	
-	// TODO:: remettre les waiter dans la queue
+
+
+	var query = {
+	    id : {
+		$in : wait.waitersIds
+	    }
+	};
+	    
+	User.update(query, { $set: { waiterCurrentEvent: null }}, function () {
+	    return ;
+	});
+
         // TODO:: cmake transaction
 
         wait.save(function (err) {
