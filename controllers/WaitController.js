@@ -510,7 +510,7 @@ router.put('/:id/validate', function(req, res) {
 
         // TODO:: cmake transaction
 
-        wait.update(function (err) {
+        wait.save(function (err) {
             if (err) {
                 res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
