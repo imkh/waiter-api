@@ -519,7 +519,7 @@ router.put('/:id/generate-code/:clientId', function(req, res) {
                 res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
             }
-            res.jsend.success({code: code});
+            res.jsend.success({code: wait.confirmationCode});
         });
     });
 });
@@ -540,6 +540,7 @@ router.put('/:id/validate', function(req, res) {
             return ;
         }
         if (code.valueOf() !== wait.confirmationCode.valueOf()) {
+	    
             causes.push('Invalid code');
             res.status(httpCodes.internalServerError).jsend.fail({message: 'Get wait failed', causes: causes});
             return ;
