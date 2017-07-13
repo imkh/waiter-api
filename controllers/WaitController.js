@@ -507,7 +507,7 @@ router.put('/:id/validate', function(req, res) {
             wait.state = 'paid';
         }
 
-
+	// TODO:: remettre les waiter dans la queue
         // TODO:: cmake transaction
 
         wait.update(function (err) {
