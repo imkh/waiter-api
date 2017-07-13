@@ -577,7 +577,7 @@ router.put('/:id/validate', function(req, res) {
     });
 });
 
-router.put('/:id/cancel/:userId', function(req, res) {
+router.delete('/:id/cancel/:userId', function(req, res) {
     var causes = [];
 
     var query = {
