@@ -577,6 +577,60 @@ router.put('/:id/validate', function(req, res) {
     });
 });
 
+router.put('/:id/cancel/:userId', function(req, res) {
+    var causes = [];
+
+    var query = {
+        _id: req.params.id
+        state : {
+            $in : ['created']
+        }
+    };
+
+    var userType = req.body.token || req.query.token || req.headers['x-user-type'];
+    
+    if (userType == "client") {
+        query.clientId = new ObjectId(req.params.userId);
+    } else if (userType == "waiter") {
+        query.waitersIds = new ObjectId(req.params.userId);
+    } else {
+        causes.push('A user type in header is required');
+        res.status(httpCodes.badRequest).jsend.fail({message: 'Get wait failed', causes: causes});
+        return ;
+    }
+
+
+    Wait.findOne(query, function(err, wait) {
+        if (err) {
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            return ;
+        }
+        if (wait === null) {
+            causes.push('Wait not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get wait failed', causes: causes});
+            return ;
+        }
+
+        query = {
+            _id : {
+                $in : wait.waitersIds
+            }
+        };
+
+        User.update(query, { $set: { waiterCurrentEvent: null }}, function () {
+            return ;
+        });
+
+        wait.remove(function (err) {
+            if (err) {
+                res.status(httpCodes.badRequest).jsend.error({message: err.message});
+                return ;
+            }
+            res.jsend.success({message: 'Wait successfully deleted'});
+        });
+    });
+});
+
 router.put('/:id/conflict/:userId', function(req, res) {
     var causes = [];
 
@@ -588,6 +642,7 @@ router.put('/:id/conflict/:userId', function(req, res) {
     };
 
     var userType = req.body.token || req.query.token || req.headers['x-user-type'];
+    
     if (userType == "client") {
         query.clientId = new ObjectId(req.params.userId);
     } else if (userType == "waiter") {
