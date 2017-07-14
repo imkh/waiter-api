@@ -122,13 +122,13 @@ router.get('/user/:userId', function(req, res) {
     if (userType == "client") {
         query.client._id = new ObjectId(req.params.userId);
     } else if (userType == "waiter") {
-	query = {
-	    waiters: {
-		$elemMatch: {
-		    _id: new ObjectId(req.params.userId)
-		}
-	    }
-	};
+        query = {
+            waiters: {
+                $elemMatch: {
+                    _id: new ObjectId(req.params.userId)
+                }
+            }
+        };
     } else {
         causes.push('A user type in header is required');
         res.status(httpCodes.badRequest).jsend.fail({message: 'Get history failed', causes: causes});
