@@ -3,29 +3,33 @@
  */
 var mongoose = require('mongoose');
 
+var Schema = mongoose.Schema,
+    UserId = Schema.ObjectId;
+
 var personSchema = new mongoose.Schema({
-	firstName: {type: String, required: true},
-	lastName: {type: String, required: true},
-	email: {type: String }
+    _id: UserId,
+    firstName: {type: String, required: true},
+    lastName: {type: String, required: true},
+    email: {type: String }
 });
 
 var historySchema = new mongoose.Schema({
     event: {
-	name: {type: String, required: true},
-	address: {type: String, required: true},
-	location: {type: [Number], required: true} // [Long, Lat]
+        name: {type: String, required: true},
+        address: {type: String, required: true},
+        location: {type: [Number], required: true} // [Long, Lat]
     },
     client: personSchema,
     waiters: [personSchema],
     wait: {
-	queueStart: {type: Date},
-	queueEnd: {type: Date},
-	queueDuration: { type: Number }, // in minute
-	state: {type: String, enum: ['created', 'queue-start', 'queue-done', 'conflict', 'paid', 'resolved']}
+        queueStart: {type: Date},
+        queueEnd: {type: Date},
+        queueDuration: { type: Number }, // in minute
+        state: {type: String, enum: ['created', 'queue-start', 'queue-done', 'conflict', 'paid', 'resolved']}
     },
     price: {
-	total: Number,
-	pricebyHours: [Number]
+        total: Number,
+        pricebyHours: [Number]
     }
 });
 

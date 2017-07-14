@@ -539,6 +539,77 @@ router.delete('/:id/delete', function(req, res) {
         });
     });
 });
+
+/**
+ * Route Add New Card
+ */
+router.put('/:userId/add-new-card/:cardToken', function(req, res) {
+    var causes = [];
+
+    if (!req.params.userId)
+        causes.push('An userId is required');
+    if (!req.params.cardToken)
+        causes.push('A card token is required');
+    if (causes.length > 0) {
+        res.status(httpCodes.badRequest).jsend.fail({message: 'Add New Card failed', causes: causes});
+        return ;
+    }
+
+    User.findOne({_id: req.params.userId}, function (err, user) {
+        if (err) {
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            return ;
+        }
+        if (user === null) {
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Add New Card failed', causes: causes});
+            return ;
+        }
+
+        if (user.cardToken.includes(req.params.cardToken)) {
+            causes.push('Card already added');
+            res.status(httpCodes.conflict).jsend.fail({message: 'Add New Card failed', causes: causes});
+            return ;
+        }
+
+        user.cardToken.push(req.params.cardToken);
+        user.save(function (err) {
+            if (err) {
+                res.status(httpCodes.badRequest).jsend.error({message: err.message});
+                return ;
+            }
+            res.jsend.success("Card successfully added");
+        });
+    });
+});
+
+/**
+ * Route Get Cards By User Id
+ */
+router.get('/:userId/get-cards/', function(req, res) {
+    var causes = [];
+
+    if (!req.params.userId)
+        causes.push('A userId is required');
+    if (causes.length > 0) {
+        res.status(httpCodes.badRequest).jsend.fail({message: 'Get Cards failed', causes: causes});
+        return ;
+    }
+
+    User.findOne({_id: req.params.userId}, function (err, user) {
+        if (err) {
+            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+            return ;
+        }
+        if (user === null) {
+            causes.push('User not found');
+            res.status(httpCodes.notFound).jsend.fail({message: 'Get Cards failed', causes: causes});
+            return ;
+        }
+
+        res.jsend.success({cards: user.cardToken});
+    });
+});
 // End: Protected routes by token system
 
 module.exports = router;
