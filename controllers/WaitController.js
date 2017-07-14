@@ -231,7 +231,9 @@ router.post('/', function(req, res) {
             res.status(httpCodes.notFound).jsend.fail({message: 'Get user failed', causes: causes});
             return ;
         }
+
         Event.findById(eventId, function(err, event) {
+            console.log(event);
             if (err) {
                 res.status(httpCodes.internalServerError).jsend.error({message: err.message});
                 return ;
@@ -257,7 +259,7 @@ router.post('/', function(req, res) {
                 waitersIds: []
             };
 
-            for (var i = 0; i !== numberOfWaiters; i++) {
+            for (var i = 0; i < numberOfWaiters; i++) {
                 newWait.waitersIds.push(event.listOfWaiters.shift());
             }
 
