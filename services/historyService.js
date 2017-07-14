@@ -35,7 +35,7 @@ historyService.addHistory = function(wait) {
                 return ;
             }
 
-	    newHistory.client._id = client._id;
+            newHistory.client._id = client._id;
             newHistory.client.firstName = client.firstName;
             newHistory.client.lastName = client.lastName;
             newHistory.client.email = client.email;
@@ -48,7 +48,7 @@ historyService.addHistory = function(wait) {
                 for (var i = 0; i !== waiters.length; i++) {
                     var waiter = {};
 
-		    waiter._id = waiters[0]._id;
+                    waiter._id = waiters[0]._id;
                     waiter.firstName = waiters[0].firstName;
                     waiter.lastName = waiters[0].lastName;
                     waiter.email = waiters[0].email;
