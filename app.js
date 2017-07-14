@@ -21,7 +21,18 @@ const serverConfig = config.get('server');
 // There's no need to check if .env exists, dotenv will check this // for you. It will show a small warning which can be disabled when // using this in production.
 dotenv.load();
 
-app.use(cors());
+var blacklist = []
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (blacklist.indexOf(origin) === -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },credentials: true
+}
+
+app.use(cors(corsOptions));
 
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
