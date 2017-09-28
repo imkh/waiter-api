@@ -14,6 +14,7 @@ var historyModel = require('./models/History.js');
 var userRoutes = require('./controllers/UserController.js');
 var eventRoutes = require('./controllers/EventController.js');
 var waitRoutes = require('./controllers/WaitController.js');
+var notationRoutes = require('./controllers/NotationController.js');
 var paymentRoutes = require('./controllers/PaymentController.js');
 var historyRoutes = require('./controllers/HistoryController.js');
 
@@ -43,6 +44,7 @@ app.get('/', function(req, res){
 app.use('/user', userRoutes);
 app.use('/event', eventRoutes);
 app.use('/wait', waitRoutes);
+app.use('/notation', notationRoutes);
 app.use('/payment', paymentRoutes);
 app.use('/history', historyRoutes);
 
