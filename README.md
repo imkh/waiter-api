@@ -1,3 +1,7 @@
+[![Build Status](https://img.shields.io/travis/waiter-project/waiter-api.svg?style=flat-square&branch=develop)](https://img.shields.io/travis/waiter-project/waiter-api)
+
+
+
 # Waiter API
 
 This repository contains the source code for the Waiter API.
@@ -12,6 +16,10 @@ The API documentation can be found here: http://docs.waiterapi.apiary.io/
 
 There might be problems with installation depending on your computer, in that case, good luck.
 
+### Forever
+
+'npm install forever -g'
+
 ### Homebrew
 
 `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
@@ -20,7 +28,7 @@ http://brew.sh/
 
 ### Node.js
 
-`brew install nodejs`
+`npm install nodejs`
 
 ### Mongodb
 
@@ -51,5 +59,8 @@ Create the database, run the following command in mongo shell:
 npm install
 
 # run application at localhost:5000
-node app.js
+npm start
+
+# test application API 
+npm test
 ```

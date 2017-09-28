@@ -1,0 +1,21 @@
+version: "2"
+services:
+  db:
+    image: mongo:3.4.1
+    ports:
+      - "27017:27017"
+    volumes:
+      - db-data:/data/db
+  api:
+    build: .
+    volumes:
+      - ./:/app
+    ports:
+      - "5000:5000"
+    links:
+      - db
+    environment:
+      DOCKER_DB_PORT: 27017
+volumes:
+  db-data:
+    driver: local

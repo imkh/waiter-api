@@ -2,8 +2,8 @@ var mongoose = require('mongoose');
 var beautifyUnique = require('mongoose-beautiful-unique-validation');
 
 var userSchema = new mongoose.Schema({
-    firstname: {type: String, required: true},
-    lastname: {type: String, required: true},
+    firstName: {type: String, required: true},
+    lastName: {type: String, required: true},
     email: {
         type: String,
         unique: 'This email address is already used',
@@ -22,7 +22,9 @@ var userSchema = new mongoose.Schema({
     confirmToken: String,
     waiterCurrentEvent: {type: String, default: null},
     status: {type: String, enum: ['not-activated', 'activated', 'banned']},
-    currentEvent: {type: mongoose.Schema.Types.ObjectId, ref: 'Event'}
+    currentEvent: {type: mongoose.Schema.Types.ObjectId, ref: 'Event'},
+    devices: {type: [String]},
+    cardToken: {type: [String]}
 });
 
 userSchema.plugin(beautifyUnique);
