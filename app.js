@@ -46,8 +46,8 @@ app.use('/wait', waitRoutes);
 app.use('/payment', paymentRoutes);
 app.use('/history', historyRoutes);
 
-http.listen(serverConfig.port, function() {
-    console.log('HTTP on port ' + serverConfig.port);
+http.listen(process.env.PORT || serverConfig.port, function() {
+    console.log('HTTP on port ' + process.env.PORT || serverConfig.port);
 });
 
 module.exports = app;

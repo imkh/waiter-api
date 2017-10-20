@@ -16,6 +16,12 @@ if (DOCKER_DB_PORT) {
 } else {
     MONGO_DB_URL = mongoConfig.URL;
 }
+
+// Use Mongo DB URI Heroku
+if (process.env.MONGODB_URI) {
+    MONGO_DB_URL = process.env.MONGODB_URI
+}
+
 // console.log('process = ' + dd(process.env));
 // console.log("DOCKER_DB = " + DOCKER_DB);
 // console.log("MONGO_DB = " + MONGO_DB);
