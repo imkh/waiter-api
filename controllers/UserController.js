@@ -13,12 +13,12 @@ var User = require('./../models/User');
 
 var bcryptConfig = config.get('bcrypt');
 var tokenConfig = config.get('JWT');
-var emailConfig = config.get('email');
-var smtpConfig = config.get('smtp');
+// var emailConfig = config.get('email');
+// var smtpConfig = config.get('smtp');
 var httpCodes = config.get('httpCodes');
 
 //TODO:: this instance must be placed in route where it is call
-var transporter = nodemailer.createTransport(smtpConfig);
+// var transporter = nodemailer.createTransport(smtpConfig);
 
 const saltRounds = bcryptConfig.saltRounds;
 const tokenSecret = tokenConfig.tokenSecret;
