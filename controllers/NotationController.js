@@ -17,17 +17,17 @@ var httpCodes = config.get('httpCodes');
 //@TODO create named callback functions !!!
 
 router.use(methodOverride(function(req, res) {
-    if (req.body && typeof req.body === 'object' && '_method' in req.body) {
-        var method = req.body._method;
-        delete req.body._method;
-        return method;
-    }
+  if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+    var method = req.body._method;
+    delete req.body._method;
+    return method;
+  }
 }));
 
 router.use(jsend.middleware);
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({
-    extended: true
+  extended: true
 }));
 
 // Start: Middleware (1)
@@ -35,76 +35,79 @@ router.use(bodyParser.urlencoded({
  * Middleware verify event exists
  */
 router.param('id', function(req, res, next, id) {
-    var causes = [];
-
-    Notation.findById(id, function (err, notation) {
-        if (err) {
-            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
-            return ;
-        }
-        if (notation === null) {
-            causes.push('Notation not found');
-            res.status(httpCodes.notFound).jsend.fail({message: 'Notation middleware failed', causes: causes});
-            return ;
-        }
-        next();
-    });
+  var causes = [];
+  
+  Notation.findById(id, function (err, notation) {
+    if (err) {
+      res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+      return ;
+    }
+    if (notation === null) {
+      causes.push('Notation not found');
+      res.status(httpCodes.notFound).jsend.fail({message: 'Notation middleware failed', causes: causes});
+      return ;
+    }
+    next();
+  });
 });
 
 /**
  * Route Create Notation
  */
 router.post('/create', function(req, res) {
-    var causes = [];
+  var causes = [];
 
-    var notation = {
-        clientId: res.req.body.clientId,
-        waiterId: res.req.body.waiterId,
-        waitId: res.req.body.waitId,
-        notation: res.req.body.notation
+  var notation = {
+    clientId: res.req.body.clientId,
+    waiterId: res.req.body.waiterId,
+    waitId: res.req.body.waitId,
+    notation: res.req.body.notation,
+    comment: res.req.body.comment  
+  };
+
+  Notation.create(notation, function(err, createdNotation) {
+    if (err) {
+      if (err.errors) {
+        if (err.errors.clientId)
+          causes.push(err.errors.clientId.message);
+        if (err.errors.waiterId)
+          causes.push(err.errors.description.waiterId);
+        if (err.errors.waitId)
+          causes.push(err.errors.location.waitId);
+        if (err.errors.notation)
+          causes.push(err.errors.notation);
+	if (err.errors.comment)
+          causes.push(err.errors.comment);
+      }
+      res.status(httpCodes.badRequest).jsend.fail({message: 'Create notation failed', causes: causes});
+      return ;
+    }
+
+    var response = {
+      notation: createdNotation
     };
-
-    Notation.create(notation, function(err, createdNotation) {
-        if (err) {
-            if (err.errors) {
-                if (err.errors.clientId)
-                    causes.push(err.errors.clientId.message);
-                if (err.errors.waiterId)
-                    causes.push(err.errors.description.waiterId);
-                if (err.errors.waitId)
-                    causes.push(err.errors.location.waitId);
-                if (err.errors.notation)
-                    causes.push(err.errors.date.notation)
-            }
-            res.status(httpCodes.badRequest).jsend.fail({message: 'Create notation failed', causes: causes});
-            return ;
-        }
-
-        var response = {
-            notation: createdNotation
-        };
-        res.status(httpCodes.created).jsend.success(response);
-    });
+    res.status(httpCodes.created).jsend.success(response);
+  });
 });
 
 /**
  * Route Get One Notation By ID
  */
 router.get('/:id', function(req, res) {
-    var causes = [];
-
-    Notation.findById(req.params.id, function (err, notation) {
-        if (err) {
-            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
-            return ;
-        }
-        if (notation === null) {
-            causes.push('Notation not found');
-            res.status(httpCodes.notFound).jsend.fail({message: 'Get notation failed', causes: causes});
-            return ;
-        }
-        res.jsend.success({notation: notation});
-    }).select('-__v');
+  var causes = [];
+  
+  Notation.findById(req.params.id, function (err, notation) {
+    if (err) {
+      res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+      return ;
+    }
+    if (notation === null) {
+      causes.push('Notation not found');
+      res.status(httpCodes.notFound).jsend.fail({message: 'Get notation failed', causes: causes});
+      return ;
+    }
+    res.jsend.success({notation: notation});
+  }).select('-__v');
 });
 
 /**
@@ -124,27 +127,27 @@ router.get('/', function(req, res) {
  * Route Delete Notation
  */
 router.delete('/:id/delete', function(req, res) {
-    var causes = [];
+  var causes = [];
+  
+  Notation.findById(req.params.id, function (err, notation) {
+    if (err) {
+      res.status(httpCodes.badRequest).jsend.error({message: err.message});
+      return ;
+    }
+    if (notation === null) {
+      causes.push('Notation not found');
+      res.status(httpCodes.notFound).jsend.fail({message: 'Delete notation failed', causes: causes});
+      return ;
+    }
 
-    Notation.findById(req.params.id, function (err, notation) {
-        if (err) {
-            res.status(httpCodes.badRequest).jsend.error({message: err.message});
-            return ;
-        }
-        if (notation === null) {
-            causes.push('Notation not found');
-            res.status(httpCodes.notFound).jsend.fail({message: 'Delete notation failed', causes: causes});
-            return ;
-        }
-
-        notation.remove(function (err) {
-            if (err) {
-                res.status(httpCodes.badRequest).jsend.error({message: err.message});
-                return ;
-            }
-            res.jsend.success({message: 'Notation successfully deleted'});
-        });
+    notation.remove(function (err) {
+      if (err) {
+        res.status(httpCodes.badRequest).jsend.error({message: err.message});
+        return ;
+      }
+      res.jsend.success({message: 'Notation successfully deleted'});
     });
+  });
 });
 
 // Start: Middleware (2)
