@@ -243,7 +243,7 @@ router.post('/create', function(req, res) {
         if (err.errors.location)
           causes.push(err.errors.location.message);
 	if (err.errors.img)
-	  causes.push(err.errors.location.img.message);
+	  causes.push(err.errors.img.message);
         if (err.errors.date)
           causes.push(err.errors.date.message)
       }
