@@ -6,6 +6,7 @@ var methodOverride = require('method-override');
 var config = require('config');
 var jwt = require('jsonwebtoken');
 var jsend = require('jsend');
+var unirest = require("unirest");
 
 var User = require('./../models/User');
 var Event = require('./../models/Event');
@@ -15,6 +16,7 @@ var zoomDistanceRatio = config.get('zoomDistanceRatio');
 var tokenConfig = config.get('JWT');
 
 const tokenSecret = tokenConfig.tokenSecret;
+
 
 //@TODO remove callback hell !!!
 //@TODO implement promise or wait !!!
@@ -258,6 +260,75 @@ router.post('/create', function(req, res) {
   });
 });
 
+
+function addWeather(event) {
+  var req = unirest("GET", "http://api.openweathermap.org/data/2.5/weather");
+
+  req.query({
+    "lat": event.location[0],
+    "lon": event.location[1],
+    "APPID": process.env.OWAPIKEY,
+    "units": "metric"
+  });
+
+  req.headers({
+    "cache-control": "no-cache"
+  });
+
+
+  req.end(function (res) {
+    if (res.error) {
+      console.log(res.error);
+      return ;
+    }
+    var body = res.body;
+    var weather = body.weather;
+    var weatherTypes = [];
+
+    for (var i = 0; i != weather.length; i++) {
+      var data = {
+	weather: weather[i].id,
+	icon: weather[i].icon
+      };
+
+      weatherTypes.push(data);
+    }
+
+    var result = {
+      weather: weatherTypes,
+      temperature: body.main.temp
+    }
+
+    /* console.log(result);
+     * console.log(event._id);*/
+
+    event.update(result, function (err) {
+      if (err) {
+	/* console.log("");
+	 * res.status(httpCodes.badRequest).jsend.error({message: err.message});*/
+        return ;
+      }
+    });
+  });
+}
+
+
+router.get('/weather', function(req, res) {
+  Event.find({}, function (err, events) {
+    if (err) {
+      res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+      return ;
+    }
+    
+    for (var i = 0; i != events.length; i++) {
+      console.log(events[i].location[0] + " " + events[i].location[1]);
+      addWeather(events[i]);
+    };
+
+    res.jsend.success({events: events});
+  }).select('-__v');
+});
+
 /**
  * Route Get One Event By ID
  */
@@ -282,45 +353,45 @@ router.get('/:id', function(req, res) {
  * Route Get Event Near a Location
  */
 router.get('/long/:long/lat/:lat/zoom/:zoom', function(req, res) {
-    var causes = [];
+  var causes = [];
 
-    var long = parseFloat(req.params.long);
-    var lat = parseFloat(req.params.lat);
-    var zoom = parseInt(req.params.zoom);
+  var long = parseFloat(req.params.long);
+  var lat = parseFloat(req.params.lat);
+  var zoom = parseInt(req.params.zoom);
 
-    if (!long)
-        causes.push('A long is required');
-    if (!lat)
-        causes.push('A lat is required');
-    if (!zoom)
-        causes.push('A zoom is required');
-    if (causes.length > 0) {
-        res.status(httpCodes.badRequest).jsend.fail({message: 'Get Event Near Location failed', causes: causes});
-        return ;
+  if (!long)
+    causes.push('A long is required');
+  if (!lat)
+    causes.push('A lat is required');
+  if (!zoom)
+    causes.push('A zoom is required');
+  if (causes.length > 0) {
+    res.status(httpCodes.badRequest).jsend.fail({message: 'Get Event Near Location failed', causes: causes});
+    return ;
+  }
+
+  Event.find({}, function (err, events) {
+    if (err) {
+      res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+      return ;
     }
-
-    Event.find({}, function (err, events) {
-        if (err) {
-            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
-            return ;
-        }
-        res.jsend.success({events: events});
-    }).where('location')
-        .near({ center: {type: 'Point', coordinates: [long, lat]}, maxDistance: zoomDistanceRatio[zoom - 1], spherical: true})
-        .select('-__v');
+    res.jsend.success({events: events});
+  }).where('location')
+       .near({ center: {type: 'Point', coordinates: [long, lat]}, maxDistance: zoomDistanceRatio[zoom - 1], spherical: true})
+       .select('-__v');
 });
 
 /**
  * Route Get All Events
  */
 router.get('/', function(req, res) {
-    Event.find({}, function (err, events) {
-        if (err) {
-            res.status(httpCodes.internalServerError).jsend.error({message: err.message});
-            return ;
-        }
-        res.jsend.success({events: events});
-    }).select('-__v');
+  Event.find({}, function (err, events) {
+    if (err) {
+      res.status(httpCodes.internalServerError).jsend.error({message: err.message});
+      return ;
+    }
+    res.jsend.success({events: events});
+  }).select('-__v');
 });
 
 /**
