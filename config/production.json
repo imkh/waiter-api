@@ -1,4 +1,7 @@
 {
+  "mongo": {
+    "URL": ""
+  },
   "server": {
     "host": "https://waiter-api.herokuapp.com",
     "port": 5000
