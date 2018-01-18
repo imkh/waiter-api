@@ -59,7 +59,6 @@ router.post('/create', function(req, res) {
 
   var notation = {
     clientId: res.req.body.clientId,
-    waiterId: res.req.body.waiterId,
     waitId: res.req.body.waitId,
     notation: res.req.body.notation,
     comment: res.req.body.comment  
@@ -70,8 +69,6 @@ router.post('/create', function(req, res) {
       if (err.errors) {
         if (err.errors.clientId)
           causes.push(err.errors.clientId.message);
-        if (err.errors.waiterId)
-          causes.push(err.errors.description.waiterId);
         if (err.errors.waitId)
           causes.push(err.errors.location.waitId);
         if (err.errors.notation)
