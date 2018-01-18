@@ -47,7 +47,7 @@ router.param('id', function(req, res, next, id) {
             res.status(httpCodes.internalServerError).jsend.error({message: err.message});
             return ;
         }
-        if (event === null) {
+        if (history === null) {
             causes.push('History not found');
             res.status(httpCodes.notFound).jsend.fail({message: 'History  middleware failed', causes: causes});
             return ;
@@ -153,6 +153,24 @@ router.get('/user/:userId', function(req, res) {
         }
         res.jsend.success({histories: histories});
     }).select('-__v');
+});
+
+router.put('/:id', function(req, res) {
+  var causes = [];
+
+  var notation = res.req.body.notation;
+
+  
+  var query = {
+    _id: req.params.id
+  };
+
+  if (!res.req.body.notation)
+    notation = 0;
+  
+  History.update(query, { $set: { 'notation.notation': notation }}, function () {
+    res.jsend.success({message: 'History successfully updated'});
+  });
 });
 
 module.exports = router;

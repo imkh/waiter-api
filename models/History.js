@@ -30,7 +30,15 @@ var historySchema = new mongoose.Schema({
     price: {
         total: Number,
         pricebyHours: [Number]
-    }
+    },
+  notation: {
+    date: {
+      type: Date, default: Date.now
+    },
+    notation: {type: Number, min: 0, max: 5, default: 0},
+    comment: {type: String}
+  }
 });
+
 
 module.exports = mongoose.model('History', historySchema);
