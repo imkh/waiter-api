@@ -1,4 +1,5 @@
-var app = require('./express.js');
+var express = require('express');
+var app = express();
 var cors = require('cors');
 var config = require('config');
 var http = require('./http');
@@ -40,6 +41,7 @@ app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
 });
 
+app.use(express.static('public'))
 
 app.use('/user', userRoutes);
 app.use('/event', eventRoutes);

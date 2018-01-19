@@ -2,6 +2,11 @@ var Event = require('./../models/Event');
 var User = require('./../models/User');
 var History = require('./../models/History');
 
+var PDFDocument = require('pdfkit');
+var fs = require('fs');
+var doc = new PDFDocument()
+
+
 var historyService = {};
 
 historyService.addHistory = function(wait) {
@@ -60,7 +65,11 @@ historyService.addHistory = function(wait) {
                         console.log(err.message);
                         return ;
                     }
-                    console.log("history added");
+		  
+		  doc.pipe(fs.createWriteStream('../public/billing/' + history._id + '.pdf'))
+		  doc.fontSize(25)
+		     .text('[waiter] billing #' + history._id + '"\n\nEvent : event \nadress\n\nQueue start : date\nQueue done : date\n\nprice: price', 100, 100)
+		  doc.end()
                     return ;
                 });
             });
