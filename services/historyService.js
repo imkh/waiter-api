@@ -66,7 +66,7 @@ historyService.addHistory = function(wait) {
                         return ;
                     }
 		  
-		  doc.pipe(fs.createWriteStream('../public/billing/' + history._id + '.pdf'))
+		  doc.pipe(fs.createWriteStream('./public/billing/' + history._id + '.pdf'))
 		  doc.fontSize(25)
 		     .text('[waiter] billing #' + history._id + '"\n\nEvent : event \nadress\n\nQueue start : date\nQueue done : date\n\nprice: price', 100, 100)
 		  doc.end()
