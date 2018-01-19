@@ -1,10 +1,10 @@
 var express = require('express');
-var app = express();
+var app = require('./express');
 var cors = require('cors');
 var config = require('config');
 var http = require('./http');
 var dotenv = require('dotenv');
-
+var path = require('path');
 
 var db = require('./models/Database.js');
 var userModel = require('./models/User.js');
@@ -41,7 +41,9 @@ app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
 });
 
-app.use(express.static('public'))
+
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use('/user', userRoutes);
 app.use('/event', eventRoutes);
@@ -49,6 +51,9 @@ app.use('/wait', waitRoutes);
 app.use('/notation', notationRoutes);
 app.use('/payment', paymentRoutes);
 app.use('/history', historyRoutes);
+
+
+
 
 http.listen(process.env.PORT || serverConfig.port, function() {
     console.log('HTTP on port ' + process.env.PORT || serverConfig.port);
